@@ -1,0 +1,62 @@
+---
+// src/pages/about.astro
+import Header from '../components/Header.astro';
+import GridBackground from '../components/GridBackground.tsx';
+import '../styles/globals.css';
+import 'lenis/dist/lenis.css';
+import SmoothScrollInit from '../components/SmoothScrollInit';
+import AboutPage from '../components/AboutPage';
+import CtaSection from '../components/CtaSection.astro';
+import Footer from '../components/Footer.astro';
+import SEOHead from '../components/SEOHead.astro';
+import AuthModalController from '../components/modals/AuthModalController.tsx';
+import { ClientRouter } from 'astro:transitions';
+import ExchangeAccessToken from '../components/token/ExchangeAccessToken';
+import AuthGate from '../components/token/AuthGate';
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <ClientRouter />
+        <SEOHead
+            title="About — Entablature"
+            description="Entablature is a focused publishing platform for research that deserves attention. Researchers write, editors review, and only approved work becomes part of the publication."
+        />
+
+        <!-- Preconnect to speed up cross-page font and image loading -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+
+        <!-- Literata backs the `.font-literata` italic accent used in the
+         headline and CTA below; the rest of the app only loads it on
+         DashboardLayout, so it's pulled in here too. -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,400;1,7..72,600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Replace with your real Search Console verification code, then
+         uncomment. Keeping it here (rather than only on the homepage) means
+         it's present regardless of which page Google happens to crawl first. -->
+        <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE" /> -->
+    </head>
+    <body class="bg-[#fcfcfd] text-[#111] antialiased min-h-screen">
+        <AuthGate client:load />
+        <SmoothScrollInit client:load />
+        <GridBackground client:load />
+        <ExchangeAccessToken client:load />
+        <Header />
+        <main
+            class="flex flex-col min-h-screen items-center px-4 sm:px-6 lg:px-8 pb-24"
+        >
+            <AboutPage />
+            <CtaSection />
+        </main>
+        <Footer />
+        <AuthModalController client:load />
+    </body>
+</html>

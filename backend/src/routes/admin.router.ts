@@ -1,0 +1,35 @@
+import { Router } from "express";
+import { getEditor, getPublisher } from "../controllers/auth.controller.js";
+import {
+  BlockUser,
+  getBlockedUsers,
+  makeEditor,
+  removeEditor,
+  unblockUser,
+  getAnalytics,
+  getBlogAnalytics,
+  getAllUsers,
+  getAUser,
+  updateUserRole,
+  getTop2Content,
+  getStatisticalContentData,
+  getViewsTimeseries,
+} from "../controllers/admin.controller.js";
+
+export const adminRouter = Router();
+
+adminRouter.get("/get-editor", getEditor);
+adminRouter.get("/get-publisher", getPublisher);
+adminRouter.put("/block/:email", BlockUser);
+adminRouter.put("/create-editor/:email", makeEditor);
+adminRouter.put("/remove-editor/:email", removeEditor);
+adminRouter.get("/get-blocked-users", getBlockedUsers);
+adminRouter.put("/unblock/:email", unblockUser);
+adminRouter.get("/analytics", getAnalytics);
+adminRouter.get("/analytics/blogs", getBlogAnalytics);
+adminRouter.get("/get-all-users", getAllUsers);
+adminRouter.get("/user/:userId", getAUser);
+adminRouter.post("/user/role/:userId", updateUserRole);
+adminRouter.get("/get-statistical-content-data", getStatisticalContentData);
+adminRouter.get("/get-top-2-content", getTop2Content);
+adminRouter.get("/analytics/views-timeseries", getViewsTimeseries);

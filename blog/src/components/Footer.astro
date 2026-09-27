@@ -1,0 +1,345 @@
+---
+/**
+ * src/components/Footer.astro
+ * Redesigned to pixel-match the reference screenshot (light slate card,
+ * script logo, 5-column nav grid, divider, and dual large headlines).
+ */
+---
+
+<footer class="w-full max-w-6xl mx-auto px-4 sm:px-6 pb-10 pt-8">
+    <div
+        class="rounded-[28px] px-8 py-10 sm:px-12 sm:py-12 bg-[#E7EAF0] dark:bg-neutral-900"
+    >
+        <div
+            class="flex flex-col md:flex-row md:justify-between gap-12 md:gap-8"
+        >
+            <!-- Brand column -->
+            <div
+                class="flex flex-col items-center md:items-start gap-6 md:w-[220px] shrink-0"
+            >
+                <a
+                    href="/"
+                    class="signature-logo text-[2.3rem] leading-none text-neutral-900 dark:text-neutral-100"
+                >
+                    Entablature
+                </a>
+
+                <p
+                    class="text-center md:text-left text-[15px] leading-6 text-neutral-500 dark:text-neutral-400 max-w-[220px]"
+                >
+                    Research &amp; insights, thoughtfully brought to light
+                </p>
+
+                <div
+                    class="flex items-center gap-5 text-neutral-800 dark:text-neutral-300"
+                >
+                    <a
+                        href="mailto:contact@entablature.in"
+                        aria-label="Email"
+                        class="hover:opacity-60 transition-opacity"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <rect x="2" y="4" width="20" height="16" rx="2"
+                            ></rect>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"
+                            ></path>
+                        </svg>
+                    </a>
+
+                    <a
+                        href="#"
+                        aria-label="X (Twitter)"
+                        class="hover:opacity-60 transition-opacity"
+                    >
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+                            ></path>
+                        </svg>
+                    </a>
+
+                    <a
+                        href="#"
+                        aria-label="Instagram"
+                        class="hover:opacity-60 transition-opacity"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                        >
+                            <rect x="2" y="2" width="20" height="20" rx="6"
+                            ></rect>
+                            <circle cx="12" cy="12" r="4.2"></circle>
+                            <circle
+                                cx="17.4"
+                                cy="6.6"
+                                r="0.6"
+                                fill="currentColor"
+                                stroke="none"></circle>
+                        </svg>
+                    </a>
+
+                    <a
+                        href="#"
+                        aria-label="LinkedIn"
+                        class="hover:opacity-60 transition-opacity"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                        >
+                            <rect x="2" y="2" width="20" height="20" rx="6"
+                            ></rect>
+                            <path d="M7 10.5v6" stroke-linecap="round"></path>
+                            <circle
+                                cx="7"
+                                cy="7.2"
+                                r="0.9"
+                                fill="currentColor"
+                                stroke="none"></circle>
+                            <path
+                                d="M11 16.5v-3.6c0-1.3.9-2.4 2.2-2.4 1.3 0 2.1 1 2.1 2.4v3.6"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nav columns -->
+            <nav
+                class="grid grid-cols-2 sm:grid-cols-5 gap-x-8 gap-y-10 sm:gap-x-10 flex-1"
+            >
+                <div>
+                    <h4
+                        class="text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
+                    >
+                        Explore
+                    </h4>
+
+                    <ul
+                        class="space-y-3 text-[15px] text-neutral-500 dark:text-neutral-400"
+                    >
+                        <li>
+                            <a
+                                href="/discover"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                Latest research
+                            </a>
+                        </li>
+
+                        <li>
+                            <a
+                                href="/discover?type=BLOG"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                Latest blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4
+                        class="text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
+                    >
+                        Write
+                    </h4>
+
+                    <ul
+                        class="space-y-3 text-[15px] text-neutral-500 dark:text-neutral-400"
+                    >
+                        <li>
+                            <a
+                                href="/desk/new?type=research"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                New research
+                            </a>
+                        </li>
+
+                        <li>
+                            <a
+                                href="/desk/new?type=blog"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                New blog
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4
+                        class="text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
+                    >
+                        Participate
+                    </h4>
+
+                    <ul
+                        class="space-y-3 text-[15px] text-neutral-500 dark:text-neutral-400"
+                    >
+                        <li>
+                            <button
+                                type="button"
+                                data-auth-mode="signup"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors text-left cursor-pointer"
+                            >
+                                Be a researcher
+                            </button>
+                        </li>
+
+                        <li>
+                            <a
+                                href="/desk/new?type=research"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                Submit research
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4
+                        class="text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
+                    >
+                        Legal
+                    </h4>
+
+                    <ul
+                        class="space-y-3 text-[15px] text-neutral-500 dark:text-neutral-400"
+                    >
+                        <li>
+                            <a
+                                href="/privacy"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                Privacy policy
+                            </a>
+                        </li>
+
+                        <li>
+                            <a
+                                href="/terms"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                Terms &amp; services
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4
+                        class="text-[15px] font-semibold text-neutral-900 dark:text-neutral-100 mb-4"
+                    >
+                        Entablature
+                    </h4>
+
+                    <ul
+                        class="space-y-3 text-[15px] text-neutral-500 dark:text-neutral-400"
+                    >
+                        <li>
+                            <a
+                                href="/about"
+                                data-astro-prefetch="hover"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors"
+                            >
+                                About
+                            </a>
+                        </li>
+
+                        <li>
+                            <button
+                                type="button"
+                                data-auth-mode="signin"
+                                class="hover:text-neutral-900 dark:hover:text-white transition-colors text-left cursor-pointer"
+                            >
+                                Sign in
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+
+        <hr
+            class="border-t border-neutral-400/30 dark:border-neutral-700 my-10 sm:my-12"
+        />
+
+        <div
+            class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6"
+        >
+            <h3
+                class="text-[28px] sm:text-[34px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 leading-none"
+            >
+                Research worth reading
+            </h3>
+
+            <h3
+                class="text-[28px] sm:text-[34px] font-bold tracking-tight text-neutral-900 dark:text-neutral-100 leading-none sm:text-right"
+            >
+                Ideas worth exploring
+            </h3>
+        </div>
+    </div>
+
+    <p class="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
+        © 2026 Entablature
+    </p>
+</footer>
+
+<script>
+    import { openAuthModal } from '../lib/authModal';
+
+    document
+        .querySelectorAll<HTMLButtonElement>('[data-auth-mode]')
+        .forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mode =
+                    btn.dataset.authMode === 'signin' ? 'signin' : 'signup';
+
+                openAuthModal(mode);
+            });
+        });
+</script>
+
+<style>
+    /* Script wordmark. Swap the font-family for your licensed/brand font if you have one —
+     this is a close open-source stand-in for the brush-script logotype in the reference. */
+    @import url('https://fonts.googleapis.com/css2?family=Yellowtail&display=swap');
+
+    .signature-logo {
+        font-family: 'Yellowtail', cursive;
+        font-weight: 400;
+    }
+</style>

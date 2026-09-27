@@ -1,0 +1,180 @@
+import mongoose, { Schema } from "mongoose";
+
+interface IPdf {
+  url: string;
+  publicId: string;
+  originalName: string;
+}
+
+export interface IBlog {
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  coverImage: {
+    url: string;
+    publicId: string;
+  };
+  csv: {
+    url: string;
+    publicId: string;
+  };
+  pdfs: IPdf[];
+  seoKeywords: string[];
+  author: mongoose.Types.ObjectId;
+  coAuthors: mongoose.Types.ObjectId[]; // 👈 Added for multiple authors
+  category: string;
+  tags: string[];
+  status: "DRAFT" | "PENDING" | "APPROVED" | "PUBLISHED" | "REJECTED";
+  docType: "RESEARCH" | "BLOG";
+  publishedAt: Date | null;
+  views: Number;
+  readTime: Number;
+}
+
+const blogSchema = new Schema<IBlog>(
+  {
+    // Blog title
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // URL-friendly title
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+
+    // Rich text content
+    // Example:
+    // <p>Hello <strong>World</strong></p>
+    content: {
+      type: String,
+      required: true,
+    },
+    seoKeywords: {
+      type: [String], // 👈 Correct Mongoose array schema syntax
+      default: [],
+    },
+    // Short description
+    excerpt: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    // Blog cover image
+    coverImage: {
+      url: {
+        type: String,
+        default: "",
+      },
+
+      publicId: {
+        type: String,
+        default: "",
+      },
+    },
+
+    csv: {
+      url: {
+        type: String,
+        default: "",
+      },
+    },
+
+    // Maximum 3 PDFs
+    pdfs: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+
+        publicId: {
+          type: String,
+          required: true,
+        },
+
+        originalName: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+
+    docType: {
+      type: String,
+      enum: ["RESEARCH", "BLOG"],
+      default: "RESEARCH", // 👈 Stores whether it's a Blog or Research
+    },
+
+    // User who created the blog
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    coAuthors: [ // 👈 Array of User references for multi-author support
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    views: {
+      type: Number,
+      default: 0,
+    },
+
+    // Blog category
+    category: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    // Blog tags
+    tags: {
+      type: [String],
+      default: [],
+    },
+
+    // Publishing workflow
+    status: {
+      type: String,
+      enum: ["DRAFT", "PENDING", "APPROVED", "PUBLISHED", "REJECTED"],
+      default: "DRAFT",
+    },
+
+    readTime: {
+      type: Number,
+      default: 0,
+    },
+
+    // Published date
+    publishedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+blogSchema.pre("save", function (next) {
+  if (this.content) {
+    const words = this.content.trim().split(/\s+/).length;
+    this.readTime = Math.ceil(words / 200); // Assuming 200 words per minute reading speed
+  }
+});
+
+const Blog = mongoose.model<IBlog>("Blog", blogSchema);
+
+export default Blog;

@@ -1,0 +1,73 @@
+---
+import Btn from '../components/Btn.tsx';
+import Header from '../components/Header.astro';
+import GridBackground from '../components/GridBackground.tsx';
+import '../styles/globals.css';
+import HeroSection from '../components/HeroSection';
+import 'lenis/dist/lenis.css';
+import SmoothScrollInit from '../components/SmoothScrollInit';
+import LatestBlogs from '../components/LatestBlogs.astro';
+import FeatureBlocks from '../components/FeatureBlocks.astro';
+import EditorialProcess from '../components/EditorialProcess.astro';
+import CtaSection from '../components/CtaSection.astro';
+import Footer from '../components/Footer.astro';
+import AuthModalController from '../components/modals/AuthModalController.tsx';
+import { ClientRouter } from 'astro:transitions';
+import ExchangeAccessToken from '../components/token/ExchangeAccessToken';
+import AuthGate from '../components/token/AuthGate';
+import HeroStats from '@/components/home/Herostats';
+import Ideasgrid from '@/components/home/Ideasgrid';
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <ClientRouter />
+        <title>Entablature</title>
+        <meta
+            name="description"
+            content="Entablature - Read and discover insightful stories."
+        />
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <!-- <script is:inline>
+    <!-- Preconnect to speed up cross-page font and image loading -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+
+        <!-- /** Disable Dark Theme as of Now */ -->
+        <!-- <script is:inline>
+      const t =
+        localStorage.getItem("theme") ??
+        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.classList.toggle("dark", t === "dark");
+    </script> -->
+    </head>
+    <body class="bg-[#fcfcfd] text-[#111] antialiased min-h-screen">
+        <AuthGate client:load />
+        <SmoothScrollInit client:load />
+        <GridBackground client:load />
+        <ExchangeAccessToken client:load />
+        <Header />
+        <main
+            class="flex flex-col min-h-screen items-center px-4 sm:px-6 lg:px-8"
+        >
+            <HeroSection client:load />
+            <HeroStats />
+            <!-- Ensure card links inside LatestBlogs use data-astro-prefetch="hover" -->
+            <LatestBlogs />
+            <!-- <Ideasgrid /> -->
+            <FeatureBlocks />
+            <EditorialProcess />
+            <CtaSection />
+        </main>
+        <Footer />
+        <AuthModalController client:load />
+    </body>
+</html>

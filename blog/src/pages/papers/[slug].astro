@@ -1,0 +1,859 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import SEOHead from '../../components/SEOHead.astro';
+import '../../styles/globals.css';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const THE_ENTABLATURE_LOGO =
+    'https://pub-d65f9d792dba44cfb4b36fdd1925ed72.r2.dev/TheEvidence_logo.png';
+const GLOBE_THUMB =
+    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&auto=format&fit=crop&q=80';
+
+const backendUri = import.meta.env.PUBLIC_API_URL;
+
+let blog: any = null;
+
+try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    const res = await fetch(`${backendUri}/blog/get/${slug}`, {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' },
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.blog) {
+            blog = data.blog;
+        }
+    }
+} catch (e) {
+    console.error('Fetch error:', e);
+}
+
+// Fallback preview data if database is unreachable
+if (!blog) {
+    blog = {
+        _id: 'demo-id',
+        title: 'The Future of Digital Diplomacy and Sovereign Cyber Governance',
+        slug: slug || 'digital-diplomacy',
+        content: `
+      <p>The global geopolitical paradigm is rapidly transitioning from territorial bilateral diplomacy to algorithmic, digital-first negotiations. Sovereign entities are now deploying automated strategic analysis engines to model treaty outcomes, monitor cross-border data telemetry, and enforce cyber security protocols.</p>
+
+      <h2>1. The Shift to Algorithmic Multipolarity</h2>
+      <p>State actors are investing heavily in localized data custody. Standardized cross-border information exchanges are required to preserve sovereign autonomy while preventing weaponized cyber interference in international communications.</p>
+
+      <blockquote>"Algorithmic diplomacy does not replace human statecraft—it elevates the speed and complexity of sovereign decision-making."</blockquote>
+
+      <h2>2. Key Structural Pillars</h2>
+      <ul>
+        <li><strong>Multilateral Treaty Simulation:</strong> High-speed policy extraction across multilingual draft treaty corpuses.</li>
+        <li><strong>Cryptographic Provenance:</strong> Ensuring public policy communications carry immutable origin proofs.</li>
+        <li><strong>Infrastructure Autonomy:</strong> Preserving national communication backbones in contested environments.</li>
+      </ul>
+
+      <h2>3. Policy Recommendations</h2>
+      <p>Diplomatic academies must institutionalize algorithmic risk auditing, establish mutual cybersecurity verification matrices, and construct sovereign custody repositories for critical statecraft documents.</p>
+    `,
+        excerpt:
+            'An examination of how emerging digital technologies and intelligence models are restructuring diplomatic statecraft, multilateral cooperation, and international security.',
+        coverImage: { url: GLOBE_THUMB },
+        pdfs: [
+            {
+                url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                originalName: 'Digital_Diplomacy_Framework_2026.pdf',
+                _id: 'pdf-1',
+            },
+        ],
+        author: {
+            name: 'Dr. Sarah Mitchell',
+            email: 'sarah.mitchell@entablature.in',
+            avatar: '',
+        },
+        coAuthors: [
+            {
+                name: 'Divyesh Moraniya',
+                email: 'divyesh@example.com',
+                avatar: '',
+            },
+            { name: 'Viral Vaghela', email: 'viral@example.com', avatar: '' },
+            { name: 'Weborium', email: 'support@weborium.me', avatar: '' },
+        ],
+        category: 'International Relations',
+        tags: ['Diplomacy', 'AI', 'Geopolitics', 'Cyber Governance'],
+        seoKeywords: ['diplomacy', 'cyber governance', 'policy simulation'],
+        views: 128450,
+        createdAt: new Date().toISOString(),
+    };
+}
+
+// 🛠️ Unified Authors List (combines primary author and co-authors safely without duplication)
+const authorMap = new Map();
+if (blog.author) {
+    const pAuth =
+        typeof blog.author === 'object'
+            ? blog.author
+            : { name: 'Researcher', email: '' };
+    const pKey = String(pAuth._id || pAuth.name);
+    authorMap.set(pKey, {
+        name: pAuth.name || 'Researcher',
+        email: pAuth.email || 'Academic Contributor',
+        avatar: pAuth.avatar || '',
+    });
+}
+if (Array.isArray(blog.coAuthors)) {
+    blog.coAuthors.forEach((co: any) => {
+        if (co) {
+            const coObj =
+                typeof co === 'object'
+                    ? co
+                    : { name: 'Contributor', email: '' };
+            const coKey = String(coObj._id || coObj.name);
+            if (!authorMap.has(coKey)) {
+                authorMap.set(coKey, {
+                    name: coObj.name || 'Contributor',
+                    email: coObj.email || 'Collaborator',
+                    avatar: coObj.avatar || '',
+                });
+            }
+        }
+    });
+}
+const unifiedAuthors = Array.from(authorMap.values());
+const primaryAuthor = unifiedAuthors[0] || {
+    name: 'Researcher',
+    email: '',
+    avatar: '',
+};
+
+const formattedDate = blog.createdAt
+    ? new Date(blog.createdAt).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+      })
+    : 'Sep 7, 2026';
+
+function formatViewCount(num: number): string {
+    if (num >= 100000) {
+        return `${(num / 100000).toFixed(1)} Lakh+ views`;
+    }
+    if (num >= 1000000) {
+        return `${(num / 1000000).toFixed(1)}M+ views`;
+    }
+    if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}k+ views`;
+    }
+    return `${num} views`;
+}
+
+const formattedViews = formatViewCount(Number(blog.views) || 0);
+
+// SEO variables
+const pageTitle = `${blog.title} | Entablature`;
+const pageDescription =
+    blog.excerpt ||
+    'Explore professional research papers and academic publications.';
+const pageImage =
+    blog.coverImage?.url ||
+    'https://pub-d65f9d792dba44cfb4b36fdd1925ed72.r2.dev/TheEvidence_logo.png';
+const authorName = primaryAuthor.name;
+---
+
+<!doctype html>
+<html lang="en" class="bg-[#f0f4f8]">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <ClientRouter />
+
+        <SEOHead
+            title={pageTitle}
+            description={pageDescription}
+            image={pageImage}
+            type="article"
+            publishDate={blog.createdAt}
+            author={authorName}
+        />
+
+        <!-- 🛠️ Sir's SEO Requirement: Injects dynamic keyword meta tags from database -->
+        {
+            blog.seoKeywords && blog.seoKeywords.length > 0 && (
+                <>
+                    <meta
+                        name="keywords"
+                        content={
+                            Array.isArray(blog.seoKeywords)
+                                ? blog.seoKeywords.join(', ')
+                                : blog.seoKeywords
+                        }
+                    />
+                    <meta
+                        property="article:tag"
+                        content={
+                            Array.isArray(blog.seoKeywords)
+                                ? blog.seoKeywords.join(', ')
+                                : blog.seoKeywords
+                        }
+                    />
+                </>
+            )
+        }
+
+        <script
+            type="application/ld+json"
+            set:html={JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'ScholarlyArticle',
+                headline: blog.title,
+                description: pageDescription,
+                image: pageImage,
+                datePublished: blog.createdAt,
+                author: {
+                    '@type': 'Person',
+                    name: authorName,
+                },
+            })}
+        />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+        <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+
+        <style is:global>
+            html,
+            body {
+                overflow-x: hidden;
+                background: radial-gradient(
+                    circle at 50% 0%,
+                    #dbeafe 0%,
+                    #f0f4f8 45%,
+                    #e2e8f0 100%
+                ) !important;
+                background-attachment: fixed !important;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .no-scroll::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scroll {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .safe-bottom {
+                padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 70px);
+            }
+
+            .blog-prose {
+                font-family: 'Lora', Georgia, serif;
+                font-size: 18px;
+                line-height: 1.85;
+                color: #334155;
+            }
+            @media (min-width: 640px) {
+                .blog-prose {
+                    font-size: 19px;
+                    line-height: 1.95;
+                }
+            }
+            .blog-prose h1,
+            .blog-prose h2,
+            .blog-prose h3,
+            .blog-prose h4 {
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-weight: 800;
+                color: #0f172a;
+                letter-spacing: -0.025em;
+            }
+            .blog-prose h1 {
+                font-size: 1.85rem;
+                margin: 2rem 0 0.8rem;
+                line-height: 1.25;
+            }
+            .blog-prose h2 {
+                font-size: 1.45rem;
+                margin: 1.6rem 0 0.7rem;
+                line-height: 1.3;
+            }
+            .blog-prose h3 {
+                font-size: 1.15rem;
+                margin: 1.3rem 0 0.5rem;
+                line-height: 1.4;
+            }
+            @media (min-width: 640px) {
+                .blog-prose h1 {
+                    font-size: 2.25rem;
+                    margin: 2.5rem 0 1rem;
+                }
+                .blog-prose h2 {
+                    font-size: 1.7rem;
+                    margin: 2rem 0 0.9rem;
+                }
+            }
+            .blog-prose p {
+                margin-bottom: 1.35rem;
+            }
+            .blog-prose ul {
+                list-style-type: disc;
+                padding-left: 1.5rem;
+                margin-bottom: 1.35rem;
+            }
+            .blog-prose ol {
+                list-style-type: decimal;
+                padding-left: 1.5rem;
+                margin-bottom: 1.35rem;
+            }
+            .blog-prose li {
+                margin-bottom: 0.4rem;
+            }
+
+            .blog-prose img {
+                border-radius: 20px;
+                margin: 1.5rem 0;
+                max-width: 100%;
+                height: auto;
+                display: block;
+                box-shadow: 0 12px 30px rgba(27, 98, 242, 0.12);
+                border: 1px solid rgba(255, 255, 255, 0.8);
+            }
+            @media (min-width: 640px) {
+                .blog-prose img {
+                    border-radius: 24px;
+                    margin: 2rem 0;
+                }
+            }
+
+            .blog-prose blockquote {
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                border-left: 4px solid #1b62f2;
+                padding: 1rem 1.25rem;
+                background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+                border-radius: 0 20px 20px 0;
+                color: #1e40af;
+                font-style: italic;
+                font-weight: 700;
+                font-size: 1.05rem;
+                margin: 1.8rem 0;
+                box-shadow: 0 4px 15px rgba(27, 98, 242, 0.05);
+            }
+            @media (min-width: 640px) {
+                .blog-prose blockquote {
+                    padding: 1.25rem 1.5rem;
+                    font-size: 1.15rem;
+                    border-radius: 0 24px 24px 0;
+                }
+            }
+            .blog-prose a {
+                color: #1b62f2;
+                text-decoration: underline;
+                text-underline-offset: 4px;
+                font-weight: 600;
+            }
+            .blog-prose pre {
+                font-family: 'JetBrains Mono', monospace;
+                background: #090d16;
+                color: #f8fafc;
+                padding: 1.25rem;
+                border-radius: 16px;
+                overflow-x: auto;
+                margin: 1.5rem 0;
+                font-size: 0.85em;
+            }
+            .blog-prose code {
+                font-family: 'JetBrains Mono', monospace;
+                background: #e2e8f0;
+                color: #0f172a;
+                padding: 0.2rem 0.4rem;
+                border-radius: 6px;
+                font-size: 0.85em;
+            }
+
+            /* Professional Tooltip & Stacked Avatar Styling with Unobstructed Tooltip Box Placement */
+            .article-container {
+                overflow: visible !important;
+            }
+            .author-avatar-group {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+            }
+            .author-avatar-group .author-tooltip-box {
+                visibility: hidden;
+                opacity: 0;
+                position: absolute;
+                top: calc(100% + 8px);
+                left: 50%;
+                transform: translateX(-50%) translateY(-4px);
+                background-color: #0f172a;
+                color: #ffffff;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 4px 10px;
+                border-radius: 8px;
+                white-space: nowrap;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+                z-index: 999;
+                pointer-events: none;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .author-avatar-group:hover .author-tooltip-box {
+                visibility: visible;
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            .author-tooltip-box::after {
+                content: '';
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: 4px;
+                border-style: solid;
+                border-color: transparent transparent #0f172a transparent;
+            }
+        </style>
+    </head>
+    <body
+        class="text-[#111] antialiased min-h-screen flex flex-col m-0 p-0 font-sans select-none relative"
+    >
+        <!-- Top Sticky Floating Glassmorphism Navbar -->
+        <header
+            class="h-[64px] sm:h-[74px] px-3.5 sm:px-12 flex items-center justify-between shrink-0 z-40 bg-white/80 backdrop-blur-2xl border-b border-white/90 sticky top-0 shadow-[0_4px_25px_rgba(27,98,242,0.06)]"
+        >
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0">
+                <a
+                    href="/discover"
+                    data-astro-prefetch="hover"
+                    onclick="if (window.history.length > 1) { event.preventDefault(); window.history.back(); }"
+                    class="flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/90 hover:bg-[#1b62f2] hover:text-white text-neutral-700 text-xs font-extrabold transition-all duration-200 active:scale-95 cursor-pointer shadow-sm border border-neutral-200/60 shrink-0 group"
+                    title="Back to Discover"
+                >
+                    <svg
+                        class="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform group-hover:-translate-x-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.8"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span class="hidden xs:inline">Discover</span>
+                </a>
+                <span class="text-neutral-300 hidden sm:inline">/</span>
+                <span
+                    class="text-[11px] sm:text-xs font-extrabold text-[#1b62f2] uppercase tracking-wider truncate max-w-[110px] sm:max-w-xs"
+                    >{blog.category}</span
+                >
+            </div>
+
+            <a href="/" class="flex items-center shrink-0" title="Entablature">
+                <img
+                    src={THE_ENTABLATURE_LOGO}
+                    alt="Entablature"
+                    class="h-7 sm:h-9 w-auto object-contain drop-shadow-md"
+                />
+            </a>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <button
+                    type="button"
+                    id="btn-share"
+                    class="px-3.5 sm:px-4.5 h-[36px] sm:h-[40px] flex items-center gap-1.5 sm:gap-2 rounded-full bg-white hover:bg-neutral-50 text-xs font-extrabold text-neutral-800 transition-all duration-200 cursor-pointer active:scale-95 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-neutral-200/80"
+                >
+                    <svg
+                        class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#1b62f2]"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                        ></path>
+                    </svg>
+                    <span class="hidden sm:inline">Share</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Reader Canvas Optimized for Mobile & Desktop -->
+        <main
+            class="flex-1 w-full max-w-[940px] mx-auto px-3 sm:px-6 py-5 sm:py-14 flex flex-col gap-6 sm:gap-8 safe-bottom"
+        >
+            <!-- Single Seamless Immersive Background Container with Blue Shadow Gradient -->
+            <div
+                class="article-container bg-white/95 backdrop-blur-3xl rounded-[28px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(27,98,242,0.15)] border border-white p-5 sm:p-14 flex flex-col gap-6 sm:gap-10 relative overflow-visible"
+            >
+                <!-- Ambient Decorative Lighting Effect -->
+                <div
+                    class="absolute -top-32 -right-32 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-400/25 to-indigo-500/10 rounded-full blur-3xl pointer-events-none"
+                >
+                </div>
+                <div
+                    class="absolute -bottom-32 -left-32 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-tr from-cyan-400/20 to-blue-500/10 rounded-full blur-3xl pointer-events-none"
+                >
+                </div>
+
+                <section class="flex flex-col gap-4 sm:gap-6 relative z-10">
+                    <div
+                        class="flex items-center gap-2 sm:gap-3.5 text-[11px] sm:text-xs text-neutral-500 font-semibold flex-wrap"
+                    >
+                        <span
+                            class="px-3 sm:px-4.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full uppercase tracking-wider font-extrabold shadow-[0_4px_12px_rgba(27,98,242,0.25)]"
+                            >{blog.category}</span
+                        >
+                        <span>•</span>
+                        <span class="font-bold text-neutral-700"
+                            >{blog.readTime} min read</span
+                        >
+                        <span>•</span>
+                        <span class="font-bold text-neutral-700"
+                            >{formattedDate}</span
+                        >
+                        <span>•</span>
+                        <span class="font-bold text-blue-600"
+                            >{formattedViews}</span
+                        >
+                    </div>
+
+                    <h1
+                        class="text-2xl sm:text-5xl font-extrabold text-[#0f172a] leading-[1.2] tracking-tight"
+                    >
+                        {blog.title}
+                    </h1>
+
+                    <div
+                        class="flex items-center justify-between gap-3 pt-4 sm:pt-6 border-t border-neutral-100 pb-1 flex-wrap"
+                    >
+                        <!-- Professional Unified Authors List Display: 1-2 authors full view, 3+ authors clean stacked avatars with tooltips -->
+                        <div
+                            class="flex items-center gap-2 sm:gap-3 max-w-full overflow-visible py-2"
+                        >
+                            {
+                                unifiedAuthors.length > 2 ? (
+                                    <div class="flex items-center -space-x-3 overflow-visible py-1 px-1.5">
+                                        {unifiedAuthors.map((auth: any) => (
+                                            <div class="author-avatar-group shrink-0 cursor-pointer">
+                                                {auth.avatar ? (
+                                                    <img
+                                                        onerror="this.onerror=null; this.src='https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=';"
+                                                        src={auth.avatar}
+                                                        alt={auth.name}
+                                                        class="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shadow-md border-2 border-white hover:scale-110 hover:z-30 transition-transform"
+                                                    />
+                                                ) : (
+                                                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-[#1b62f2] to-indigo-600 text-white flex items-center justify-center text-xs font-extrabold shadow-md border-2 border-white hover:scale-110 hover:z-30 transition-transform">
+                                                        {auth.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <span class="author-tooltip-box">
+                                                    {auth.name}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    unifiedAuthors.map((auth: any) => (
+                                        <div class="flex items-center gap-2.5">
+                                            {auth.avatar ? (
+                                                <img
+                                                    onerror="this.onerror=null; this.src='https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=';"
+                                                    src={auth.avatar}
+                                                    alt={auth.name}
+                                                    class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl object-cover shadow-sm border border-white shrink-0"
+                                                />
+                                            ) : (
+                                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#1b62f2] via-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-sm sm:text-base shrink-0 shadow-[0_4px_15px_rgba(27,98,242,0.3)]">
+                                                    {auth.name.charAt(0)}
+                                                </div>
+                                            )}
+                                            <div class="flex flex-col min-w-0">
+                                                <span class="text-xs sm:text-sm font-extrabold text-neutral-950 truncate">
+                                                    {auth.name}
+                                                </span>
+                                                <span class="text-[10px] sm:text-[11px] text-neutral-500 font-semibold truncate mt-0.5">
+                                                    {auth.email}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )
+                            }
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HERO COVER IMAGE -->
+                {
+                    blog.coverImage?.url && (
+                        <div class="w-full h-[220px] sm:h-[460px] rounded-[24px] sm:rounded-[32px] overflow-hidden bg-neutral-900 shadow-[0_15px_35px_rgba(0,0,0,0.1)] relative z-10 border border-neutral-200/50">
+                            <img
+                                src={blog.coverImage.url}
+                                alt={blog.title}
+                                loading="eager"
+                                fetchpriority="high"
+                                decoding="async"
+                                class="w-full h-full object-cover"
+                            />
+                        </div>
+                    )
+                }
+
+                {
+                    blog.excerpt && (
+                        <div class="p-4 sm:p-8 bg-gradient-to-br from-blue-50/90 via-indigo-50/50 to-white rounded-[22px] sm:rounded-[28px] border border-blue-100 text-neutral-700 text-base sm:text-xl leading-relaxed font-medium italic shadow-inner relative z-10">
+                            "{blog.excerpt}"
+                        </div>
+                    )
+                }
+
+                <!-- ARTICLE BODY -->
+                <article class="blog-prose pt-1 sm:pt-2 relative z-10">
+                    <div set:html={blog.content} />
+                </article>
+
+                <!-- ATTACHED PDFS -->
+                {
+                    blog.pdfs && blog.pdfs.length > 0 && (
+                        <section class="mt-4 pt-6 sm:pt-8 border-t border-neutral-200/70 flex flex-col gap-4 relative z-10">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow-md">
+                                        <svg
+                                            class="w-4 h-4 sm:w-5 sm:h-5"
+                                            fill="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2zm-1 15v-4H8l4-5 4 5h-3v4h-2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-sm sm:text-base font-extrabold text-neutral-900">
+                                            Research Documentation
+                                        </h3>
+                                        <p class="text-[11px] sm:text-xs text-neutral-500 font-semibold">
+                                            {blog.pdfs.length} verified PDF
+                                            evidence file(s)
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-full border border-rose-200/60 shadow-sm">
+                                    Verified PDF
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3 sm:gap-4">
+                                {blog.pdfs.map((pdf: any, idx: number) => (
+                                    <div class="p-4 sm:p-5 bg-gradient-to-br from-white via-neutral-50 to-neutral-100 rounded-[22px] sm:rounded-[26px] border border-neutral-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition hover:shadow-md">
+                                        <div class="flex items-start gap-3 min-w-0 flex-1">
+                                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-sm border border-rose-100">
+                                                <svg
+                                                    class="w-4 h-4 sm:w-5 sm:h-5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2.2"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <div class="flex flex-col min-w-0 flex-1">
+                                                <span
+                                                    class="text-xs sm:text-sm font-extrabold text-neutral-900 truncate"
+                                                    title={pdf.originalName}
+                                                >
+                                                    {pdf.originalName ||
+                                                        `Entablature_Document_${idx + 1}.pdf`}
+                                                </span>
+                                                <span class="text-[10.5px] sm:text-[11px] text-neutral-400 font-semibold mt-0.5">
+                                                    Secure PDF Document
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-neutral-200/60 shrink-0">
+                                            <button
+                                                type="button"
+                                                class="btn-preview-pdf flex-1 sm:flex-initial py-2 px-3.5 rounded-xl bg-white hover:bg-neutral-100 text-neutral-800 text-xs font-extrabold transition cursor-pointer text-center border border-neutral-200 shadow-sm"
+                                                data-pdf-url={pdf.url}
+                                                data-pdf-name={
+                                                    pdf.originalName ||
+                                                    `Document ${idx + 1}`
+                                                }
+                                            >
+                                                Preview
+                                            </button>
+                                            <a
+                                                href={pdf.url}
+                                                target="_blank"
+                                                download={
+                                                    pdf.originalName ||
+                                                    'document.pdf'
+                                                }
+                                                class="flex-1 sm:flex-initial py-2 px-4 rounded-xl bg-[#1b62f2] hover:bg-[#1553d6] text-white text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_4px_12px_rgba(27,98,242,0.3)]"
+                                            >
+                                                <svg
+                                                    class="w-3.5 h-3.5"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2.5"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M4 16v1a3 3 0 002 3h12a3 3 0 002-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                                    />
+                                                </svg>
+                                                <span>Download</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )
+                }
+            </div>
+
+            <!-- Fast Bottom Navigation Optimized for Mobile Viewports -->
+            <div class="flex items-center justify-center sm:justify-start pb-6">
+                <a
+                    href="/discover"
+                    data-astro-prefetch="hover"
+                    onclick="if (window.history.length > 1) { event.preventDefault(); window.history.back(); }"
+                    class="text-xs font-extrabold text-neutral-700 hover:text-[#1b62f2] transition flex items-center gap-2 cursor-pointer active:scale-95 bg-white/90 backdrop-blur-md px-6 py-3.5 rounded-full shadow-[0_6px_25px_rgba(0,0,0,0.06)] border border-white text-center w-full sm:w-auto justify-center"
+                >
+                    <span>←</span>
+                    <span>Back to all research papers & blogs</span>
+                </a>
+            </div>
+        </main>
+
+        <!-- Fullscreen PDF Viewer Modal -->
+        <div
+            id="pdf-modal"
+            class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex-col justify-between"
+        >
+            <div
+                class="h-14 sm:h-16 px-4 sm:px-8 bg-neutral-900 text-white flex items-center justify-between shrink-0 border-b border-neutral-800 shadow-md"
+            >
+                <span
+                    id="modal-pdf-title"
+                    class="text-xs sm:text-sm font-bold truncate max-w-[140px] sm:max-w-md"
+                    >Document Preview</span
+                >
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <a
+                        id="modal-download-btn"
+                        href="#"
+                        target="_blank"
+                        download
+                        class="px-3.5 sm:px-4 py-1.5 sm:py-2 bg-[#1b62f2] hover:bg-blue-600 rounded-xl text-xs font-bold text-white shadow-md transition"
+                    >
+                        Download
+                    </a>
+                    <button
+                        type="button"
+                        id="btn-close-modal"
+                        class="px-3.5 sm:px-4 py-1.5 sm:py-2 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-xs font-bold cursor-pointer transition"
+                    >
+                        Close ✕
+                    </button>
+                </div>
+            </div>
+            <iframe
+                id="modal-pdf-frame"
+                class="flex-1 w-full h-full border-none bg-white"></iframe>
+        </div>
+
+        <!-- Client Scripts -->
+        <script>
+            import { apiClient } from '../../api/api-client';
+
+            function initPaperView() {
+                const previewButtons =
+                    document.querySelectorAll('.btn-preview-pdf');
+                const modal = document.getElementById('pdf-modal');
+                const modalFrame = document.getElementById(
+                    'modal-pdf-frame',
+                ) as HTMLIFrameElement;
+                const modalTitle = document.getElementById('modal-pdf-title');
+                const modalDownload = document.getElementById(
+                    'modal-download-btn',
+                ) as HTMLAnchorElement;
+                const closeModal = document.getElementById('btn-close-modal');
+                const shareBtn = document.getElementById('btn-share');
+
+                previewButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const url = btn.getAttribute('data-pdf-url') || '';
+                        const name =
+                            btn.getAttribute('data-pdf-name') || 'Document.pdf';
+
+                        if (modal && modalFrame) {
+                            modalFrame.src = url;
+                            if (modalTitle) modalTitle.textContent = name;
+                            if (modalDownload) modalDownload.href = url;
+                            modal.classList.add('flex');
+                            modal.classList.remove('hidden');
+                        }
+                    });
+                });
+
+                closeModal?.addEventListener('click', () => {
+                    modal?.classList.add('hidden');
+                    modal?.classList.remove('flex');
+                    if (modalFrame) modalFrame.src = 'about:blank'; // Immediate memory cleanup
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    if (
+                        e.key === 'Escape' &&
+                        modal &&
+                        !modal.classList.contains('hidden')
+                    ) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        if (modalFrame) modalFrame.src = 'about:blank';
+                    }
+                });
+
+                shareBtn?.addEventListener('click', () => {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: document.title,
+                            url: window.location.href,
+                        });
+                    } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('Article link copied to clipboard!');
+                    }
+                });
+            }
+
+            document.addEventListener('astro:page-load', initPaperView);
+        </script>
+    </body>
+</html>

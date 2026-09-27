@@ -1,0 +1,31 @@
+# --- Astro & Vercel Internals (Crucial) ---
+.astro/
+.vercel/
+dist/
+
+# --- Dependencies ---
+node_modules/
+
+# --- Sensitive Files & Environments (Do Not Touch) ---
+.env
+.env.*
+!.env.example
+
+# --- Icons & Static Brand Assets ---
+public/
+apple-touch-icon.png
+favicon-96x96.png
+favicon.ico
+favicon.svg
+web-app-manifest-192x192.png
+web-app-manifest-512x512.png
+
+# --- Manifests & Configurations ---
+site.webmanifest
+components.json
+package-lock.json
+
+# --- Version Control & System Files ---
+.git/
+.DS_Store
+œ

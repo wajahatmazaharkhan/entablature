@@ -1,0 +1,971 @@
+---
+// src/pages/privacy.astro
+
+import Header from '../components/Header.astro';
+
+import GridBackground from '../components/GridBackground.tsx';
+
+import '../styles/globals.css';
+
+import 'lenis/dist/lenis.css';
+
+import SmoothScrollInit from '../components/SmoothScrollInit';
+
+import Footer from '../components/Footer.astro';
+
+import SEOHead from '../components/SEOHead.astro';
+
+import AuthModalController from '../components/modals/AuthModalController.tsx';
+
+import { ClientRouter } from 'astro:transitions';
+
+import ExchangeAccessToken from '../components/token/ExchangeAccessToken';
+
+import AuthGate from '../components/token/AuthGate';
+
+const CONTACT_EMAIL = 'contact@entablature.in';
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <ClientRouter />
+
+        <SEOHead
+            title="Privacy Policy — Entablature"
+            description="How Entablature collects, uses, and protects your information, including data received through Google Sign-In."
+        />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,400;1,7..72,600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Replace with your real Search Console verification code. -->
+
+        <meta
+            name="google-site-verification"
+            content="YOUR_VERIFICATION_CODE"
+        />
+    </head>
+
+    <body class="bg-[#fcfcfd] text-[#111] antialiased min-h-screen">
+        <AuthGate client:load />
+
+        <SmoothScrollInit client:load />
+
+        <GridBackground client:load />
+
+        <ExchangeAccessToken client:load />
+
+        <Header />
+
+        <main
+            class="flex flex-col min-h-screen items-center px-4 sm:px-6 lg:px-8 pb-24"
+        >
+            <article class="w-full max-w-3xl mx-auto pt-16 sm:pt-24">
+                <header class="text-center mb-14">
+
+                    <h1
+                        class="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900"
+                    >
+                        Privacy <span class="font-literata italic font-normal"
+                            >policy</span
+                        >
+                    </h1>
+
+                    <p class="mt-4 text-sm text-neutral-400">
+                        Last updated: September 15, 2026
+                    </p>
+                </header>
+
+                <div
+                    class="prose-legal flex flex-col gap-10 text-[15px] leading-relaxed text-neutral-600"
+                >
+                    <p>
+                        Entablature ("Entablature," "we," "us," or "our") is
+                        an editorial publishing platform for research and blogs
+                        (the "Service").
+                    </p>
+
+                    <p>
+                        This Privacy Policy explains what information we
+                        collect, why we collect it, how we use and share it, how
+                        long we retain it, and the choices available to you.
+                    </p>
+
+                    <p>
+                        This Privacy Policy applies to Entablature website,
+                        public publication pages, authenticated application
+                        areas, research and blog publishing functionality, and
+                        related services.
+                    </p>
+
+                    <!-- Google OAuth verification disclosure -->
+
+                    <section
+                        class="rounded-2xl border border-blue-100 bg-blue-50/60 p-6 sm:p-7"
+                    >
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            Google Sign-In &amp; the Google API Services User
+                            Data Policy
+                        </h2>
+
+                        <p class="mb-3">
+                            Entablature uses Google OAuth exclusively for
+                            authentication. When you sign in with Google, we
+                            request only Google's default, non-sensitive scopes:
+                        </p>
+
+                        <ul class="list-disc pl-5 mb-3 flex flex-col gap-1">
+                            <li>
+                                <code class="text-[13px]">openid</code> — to verify
+                                your identity
+                            </li>
+
+                            <li>
+                                <code class="text-[13px]">email</code> — your Google
+                                account email address
+                            </li>
+
+                            <li>
+                                <code class="text-[13px]">profile</code> — your basic
+                                profile info (name, profile picture, Google account
+                                identifier)
+                            </li>
+                        </ul>
+
+                        <p class="mb-3">
+                            We do not request access to Gmail, Google Drive,
+                            Google Calendar, or any other sensitive or
+                            restricted Google API scope. We never read, modify,
+                            or store any Google data outside of this basic
+                            profile information.
+                        </p>
+
+                        <p>
+                            Entablature's use and transfer of information
+                            received from Google APIs adheres to the
+
+                            <a
+                                href="https://developers.google.com/terms/api-services-user-data-policy"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-blue-600 hover:underline"
+                                >Google API Services User Data Policy</a
+                            >, including the Limited Use requirements.
+                        </p>
+                    </section>
+                </div>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        1. Information We Collect
+                    </h2>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Account Information
+                    </h3>
+
+                    <p class="mb-2">
+                        When you sign in to Entablature using Google, we may
+                        receive and store information necessary to create and
+                        manage your account, including:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Name</li>
+
+                        <li>Email address</li>
+
+                        <li>Google account identifier</li>
+
+                        <li>Profile picture or avatar</li>
+                    </ul>
+
+                    <p class="mb-2">
+                        Entablature uses Google OAuth for authentication and
+                        does not require users to create or store a separate
+                        password for the Service.
+                    </p>
+
+                    <p>
+                        We may also store information related to your account's
+                        role and status, such as whether the account is active
+                        or suspended.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Research Information
+                    </h3>
+
+                    <p class="mb-2">
+                        When you create or submit Research, we collect and store
+                        information necessary to provide the research publishing
+                        workflow, including:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1">
+                        <li>Research title</li>
+
+                        <li>Research body</li>
+
+                        <li>Author information</li>
+
+                        <li>Research status</li>
+
+                        <li>Creation and update timestamps</li>
+
+                        <li>Submission timestamp</li>
+
+                        <li>Publication timestamp</li>
+
+                        <li>Rejection reason, where provided</li>
+
+                        <li>PDF attachments</li>
+
+                        <li>Embedded graph configurations</li>
+                    </ul>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Blog Information
+                    </h3>
+
+                    <p class="mb-2">
+                        When you create or submit a Blog, we may collect and
+                        store the information necessary to create, manage,
+                        review, and publish the Blog. This may include:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Blog title</li>
+
+                        <li>Blog content</li>
+
+                        <li>Author information</li>
+
+                        <li>Publication information</li>
+
+                        <li>
+                            Views or other essential publication counts where
+                            provided by the Service
+                        </li>
+
+                        <li>
+                            Information required to manage the Blog within the
+                            publishing system
+                        </li>
+                    </ul>
+
+                    <p>
+                        Blogs are intended to remain lighter-weight than
+                        Research and are subject to a maximum length of 3,000
+                        words.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Editorial and Review Information
+                    </h3>
+
+                    <p class="mb-2">
+                        For Research that enters editorial review, we may store
+                        information relating to the review process, including:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Research identifier</li>
+
+                        <li>Editor identifier</li>
+
+                        <li>Editorial decision</li>
+
+                        <li>Review reason, where provided</li>
+
+                        <li>Date and time of the decision</li>
+                    </ul>
+
+                    <p>
+                        This information is used to operate and maintain the
+                        editorial process.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Audit Information
+                    </h3>
+
+                    <p class="mb-2">
+                        Entablature maintains audit records for important
+                        actions performed within the Service. Audit records may
+                        include:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>The user who performed an action</li>
+
+                        <li>The action performed</li>
+
+                        <li>The type of affected resource</li>
+
+                        <li>The affected resource identifier</li>
+
+                        <li>Relevant metadata</li>
+
+                        <li>Date and time</li>
+                    </ul>
+
+                    <p class="mb-2">
+                        Examples of actions that may be recorded include:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1">
+                        <li>User sign-in</li>
+
+                        <li>Role changes</li>
+
+                        <li>Account suspension or reactivation</li>
+
+                        <li>Research creation and editing</li>
+
+                        <li>Research submission</li>
+
+                        <li>Research approval</li>
+
+                        <li>Research rejection</li>
+
+                        <li>Research publication</li>
+
+                        <li>Research attachment changes</li>
+
+                        <li>Research graph changes</li>
+                    </ul>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-5 mb-2"
+                    >
+                        Usage Data and Cookies
+                    </h3>
+
+                    <p class="mb-2">
+                        We may collect standard technical and usage information
+                        when you use the Service. This may include:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>IP address</li>
+
+                        <li>Browser type</li>
+
+                        <li>Device information</li>
+
+                        <li>Pages or areas visited</li>
+
+                        <li>Basic usage information</li>
+
+                        <li>
+                            Information relating to authentication and sessions
+                        </li>
+                    </ul>
+
+                    <p>
+                        We may use cookies or similar technologies where
+                        necessary to provide authentication, maintain secure
+                        sessions, operate the Service, understand basic usage,
+                        and improve the user experience.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        2. How We Use Your Information
+                    </h2>
+
+                    <p class="mb-2">We use information we collect to:</p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Create and manage your account.</li>
+
+                        <li>Authenticate you through Google.</li>
+
+                        <li>Provide access according to your role.</li>
+
+                        <li>
+                            Allow Researchers to create and manage Research.
+                        </li>
+
+                        <li>
+                            Allow eligible users to create and manage Blogs.
+                        </li>
+
+                        <li>Store and process submitted content.</li>
+
+                        <li>Facilitate editorial review.</li>
+
+                        <li>Publish approved content.</li>
+
+                        <li>Display published Research and Blogs.</li>
+
+                        <li>
+                            Provide public search and discovery functionality.
+                        </li>
+
+                        <li>Maintain research and publication records.</li>
+
+                        <li>Maintain audit records.</li>
+
+                        <li>Secure the Service.</li>
+
+                        <li>
+                            Detect and prevent unauthorized access or misuse.
+                        </li>
+
+                        <li>
+                            Validate uploaded files and structured graph data.
+                        </li>
+
+                        <li>Provide support and respond to requests.</li>
+
+                        <li>Maintain and improve the Service.</li>
+
+                        <li>Comply with applicable legal obligations.</li>
+                    </ul>
+
+                    <p class="font-semibold text-neutral-900">
+                        We do not sell your personal information.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        3. Google Authentication
+                    </h2>
+
+                    <p class="mb-2">
+                        Entablature uses Google OAuth as its authentication
+                        method.
+                    </p>
+
+                    <p class="mb-2">
+                        When you sign in with Google, Google may provide
+                        information necessary to authenticate you and establish
+                        your account on Entablature.
+                    </p>
+
+                    <p class="mb-2">
+                        We use the information received through Google for
+                        account authentication and management and other purposes
+                        described in this Privacy Policy.
+                    </p>
+
+                    <p class="mb-2">
+                        Your use of Google services is also governed by Google's
+                        own terms and privacy policies.
+                    </p>
+
+                    <p>
+                        You may manage permissions granted to applications
+                        through your Google account settings.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        4. Publicly Available Content
+                    </h2>
+
+                    <p class="mb-2">
+                        Research and Blogs that are published on Entablature
+                        are intended to be publicly accessible. Published
+                        content may include:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Title</li>
+
+                        <li>Author name</li>
+
+                        <li>Publication date</li>
+
+                        <li>Content</li>
+
+                        <li>
+                            Other publication metadata displayed by the Service
+                        </li>
+                    </ul>
+
+                    <p class="mb-2">
+                        Published content may be discoverable through The
+                        Entablature's public search and other public discovery
+                        mechanisms.
+                    </p>
+
+                    <p class="mb-2">
+                        Published Research may also be included in the public
+                        sitemap.
+                    </p>
+
+                    <p>
+                        Draft, Pending Review, and Rejected Research is not
+                        intended to be publicly indexed or included in the
+                        public sitemap.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        5. Who We Share Information With
+                    </h2>
+
+                    <p class="mb-2">
+                        We may share information where necessary to operate,
+                        secure, maintain, or provide the Service. This may
+                        include:
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Authentication providers
+                    </h3>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>
+                            Google, as necessary to provide Google OAuth
+                            authentication.
+                        </li>
+                    </ul>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Infrastructure and service providers
+                    </h3>
+
+                    <p class="mb-2">
+                        We may use third-party providers for services such as:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Hosting</li>
+
+                        <li>Database infrastructure</li>
+
+                        <li>File and object storage</li>
+
+                        <li>Security</li>
+
+                        <li>Content delivery</li>
+
+                        <li>Email or transactional communications</li>
+
+                        <li>Application monitoring</li>
+
+                        <li>
+                            Other infrastructure required to operate the Service
+                        </li>
+                    </ul>
+
+                    <p class="mb-2">
+                        These providers may process information on our behalf
+                        and are expected to use it only as necessary to provide
+                        their services to us.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Legal and safety requirements
+                    </h3>
+
+                    <p class="mb-2">
+                        We may disclose information where reasonably necessary
+                        to:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1">
+                        <li>Comply with applicable law.</li>
+
+                        <li>Respond to lawful requests from authorities.</li>
+
+                        <li>
+                            Protect the rights, safety, and property of The
+                            Entablature, our users, or others.
+                        </li>
+
+                        <li>
+                            Investigate fraud, abuse, security incidents, or
+                            violations of our Terms.
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        6. We Do Not Sell Your Personal Information
+                    </h2>
+
+                    <p class="mb-2">
+                        We do not sell your personal information.
+                    </p>
+
+                    <p>
+                        We do not share your personal information with third
+                        parties for their independent marketing purposes.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        7. Data Retention
+                    </h2>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Account information
+                    </h3>
+
+                    <p class="mb-2">
+                        We retain account information while your account is
+                        active or for as long as reasonably necessary to provide
+                        the Service, maintain security, comply with legal
+                        obligations, and resolve disputes.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Research and Blog content
+                    </h3>
+
+                    <p class="mb-2">
+                        Research and Blog content may be retained for as long as
+                        necessary to provide the publishing Service, maintain
+                        publication records, operate the editorial process, or
+                        comply with applicable obligations.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Review and audit records
+                    </h3>
+
+                    <p class="mb-2">
+                        Editorial review records and audit logs may be retained
+                        as necessary to maintain the integrity, security,
+                        accountability, and history of the Service.
+                    </p>
+
+                    <h3
+                        class="text-sm font-semibold text-neutral-900 mt-4 mb-2"
+                    >
+                        Deletion
+                    </h3>
+
+                    <p>
+                        When information is no longer required for legitimate
+                        operational or legal purposes, we may delete or
+                        anonymize it.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        8. Your Controls and Rights
+                    </h2>
+
+                    <p class="mb-2">
+                        Depending on the functionality available to you and
+                        applicable law, you may be able to:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Access your account information.</li>
+
+                        <li>Correct inaccurate account information.</li>
+
+                        <li>Manage your Research.</li>
+
+                        <li>Edit Research while it is in an editable state.</li>
+
+                        <li>Delete eligible draft Research.</li>
+
+                        <li>Submit Research for review.</li>
+
+                        <li>Resubmit rejected Research where permitted.</li>
+
+                        <li>
+                            Manage your published or unpublished content where
+                            the Service provides those controls.
+                        </li>
+
+                        <li>Manage your Google account permissions.</li>
+                    </ul>
+
+                    <p class="mb-2">
+                        You may also contact us to request access to, correction
+                        of, export of, or deletion of personal information.
+                    </p>
+
+                    <p>
+                        Requests should be sent to:
+
+                        <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            class="text-blue-600 hover:underline"
+                            >{CONTACT_EMAIL}</a
+                        >
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        9. Role-Based Access
+                    </h2>
+
+                    <p class="mb-2">
+                        Entablature uses role-based access control to limit
+                        access to information and functionality. The Service has
+                        four roles:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Public User</li>
+
+                        <li>Researcher</li>
+
+                        <li>Editor</li>
+
+                        <li>Admin</li>
+                    </ul>
+
+                    <p class="mb-2">
+                        Researchers may access their own private Research
+                        according to the Service's permissions.
+                    </p>
+
+                    <p class="mb-2">
+                        Editors may access Research submitted for editorial
+                        review and perform editorial actions according to their
+                        permissions.
+                    </p>
+
+                    <p class="mb-2">
+                        Administrators may manage users, roles, Research, and
+                        administrative functions.
+                    </p>
+
+                    <p>
+                        Access to protected information and actions is enforced
+                        server-side.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        10. Research Attachments and Graphs
+                    </h2>
+
+                    <p class="mb-2">
+                        Research may contain PDF attachments and structured
+                        graph data.
+                    </p>
+
+                    <p class="mb-2">
+                        PDF attachments are subject to the Service's technical
+                        requirements, including a maximum file size of 1 MB per
+                        file.
+                    </p>
+
+                    <p class="mb-2">
+                        Uploaded files may be validated and inspected for
+                        security purposes.
+                    </p>
+
+                    <p class="mb-2">
+                        Graph data may be validated according to its required
+                        structure.
+                    </p>
+
+                    <p>
+                        We store these materials as necessary to provide the
+                        Research publishing and reading experience.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        11. Security
+                    </h2>
+
+                    <p class="mb-2">
+                        We use commercially reasonable technical and
+                        organizational safeguards designed to protect
+                        information processed through Entablature.
+                    </p>
+
+                    <p class="mb-2">
+                        Security measures include, where applicable:
+                    </p>
+
+                    <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                        <li>Google OAuth authentication.</li>
+
+                        <li>Secure session handling.</li>
+
+                        <li>Server-side role-based access control.</li>
+
+                        <li>Server-side input validation.</li>
+
+                        <li>XSS-safe rendering of Research content.</li>
+
+                        <li>CSRF protection where applicable.</li>
+
+                        <li>
+                            Rate limiting for authentication and sensitive
+                            actions.
+                        </li>
+
+                        <li>Audit logging for critical actions.</li>
+
+                        <li>Server-side validation of uploaded files.</li>
+
+                        <li>Validation of graph data.</li>
+                    </ul>
+
+                    <p>
+                        No method of transmission, storage, or processing is
+                        completely secure, and we cannot guarantee absolute
+                        security.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        12. Children's Privacy
+                    </h2>
+
+                    <p class="mb-2">
+                        Entablature is not intended for children, and we do not
+                        knowingly collect personal information from children.
+                    </p>
+
+                    <p>
+                        If you believe that a child has provided personal
+                        information to us, please contact us at:
+
+                        <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            class="text-blue-600 hover:underline"
+                            >{CONTACT_EMAIL}</a
+                        >
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        13. Third-Party Services
+                    </h2>
+
+                    <p class="mb-2">
+                        Entablature may rely on third-party services necessary
+                        to operate parts of the Service, including
+                        authentication, hosting, infrastructure, storage,
+                        security, and other technical services.
+                    </p>
+
+                    <p class="mb-2">
+                        Those providers may process information according to
+                        their own privacy policies and applicable agreements
+                        with Entablature.
+                    </p>
+
+                    <p>
+                        Where a third-party service is used to authenticate your
+                        account or provide another feature, your use of that
+                        third-party service may also be governed by its own
+                        terms and privacy policies.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        14. International Data Processing
+                    </h2>
+
+                    <p class="mb-2">
+                        Depending on where Entablature and its service
+                        providers operate, your information may be processed or
+                        stored in countries other than the country in which you
+                        live.
+                    </p>
+
+                    <p>
+                        Where required by applicable law, we will use
+                        appropriate safeguards for such transfers.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        15. Changes to This Privacy Policy
+                    </h2>
+
+                    <p class="mb-2">
+                        We may update this Privacy Policy from time to time.
+                    </p>
+
+                    <p class="mb-2">
+                        When material changes are made, we may communicate them
+                        through the Service or other appropriate means.
+                    </p>
+
+                    <p>
+                        The "Last Updated" date at the beginning of this Privacy
+                        Policy indicates when the policy was most recently
+                        revised.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                        16. Contact
+                    </h2>
+
+                    <p>
+                        For privacy questions, data requests, concerns, or other
+                        inquiries regarding this Privacy Policy, please contact:
+
+                        <a
+                            href={`mailto:${CONTACT_EMAIL}`}
+                            class="text-blue-600 hover:underline"
+                            >{CONTACT_EMAIL}</a
+                        >
+                    </p>
+                </section>
+            </article>
+        </main>
+
+        <Footer />
+
+        <AuthModalController client:load />
+    </body>
+</html>

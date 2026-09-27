@@ -1,0 +1,709 @@
+---
+// src/pages/terms.astro
+
+import Header from '../components/Header.astro';
+
+import GridBackground from '../components/GridBackground.tsx';
+
+import '../styles/globals.css';
+
+import 'lenis/dist/lenis.css';
+
+import SmoothScrollInit from '../components/SmoothScrollInit';
+
+import Footer from '../components/Footer.astro';
+
+import SEOHead from '../components/SEOHead.astro';
+
+import AuthModalController from '../components/modals/AuthModalController.tsx';
+
+import { ClientRouter } from 'astro:transitions';
+
+import ExchangeAccessToken from '../components/token/ExchangeAccessToken';
+
+import AuthGate from '../components/token/AuthGate';
+
+const CONTACT_EMAIL = 'contact@entablature.in';
+
+const GOVERNING_JURISDICTION = '[INSERT GOVERNING JURISDICTION]'; // TODO: set before launch
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <ClientRouter />
+
+        <SEOHead
+            title="Terms of Service — Entablature"
+            description="The terms governing your access to and use of Entablature's publishing platform for research and blogs."
+        />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@1,7..72,400;1,7..72,600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Replace with your real Search Console verification code. -->
+
+        <meta
+            name="google-site-verification"
+            content="YOUR_VERIFICATION_CODE"
+        />
+    </head>
+
+    <body class="bg-[#fcfcfd] text-[#111] antialiased min-h-screen">
+        <AuthGate client:load />
+
+        <SmoothScrollInit client:load />
+
+        <GridBackground client:load />
+
+        <ExchangeAccessToken client:load />
+
+        <Header />
+
+        <main
+            class="flex flex-col min-h-screen items-center px-4 sm:px-6 lg:px-8 pb-24"
+        >
+            <article class="w-full max-w-3xl mx-auto pt-16 sm:pt-24">
+                <header class="text-center mb-14">
+                    <h1
+                        class="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900"
+                    >
+                        Terms of <span class="font-literata italic font-normal"
+                            >service</span
+                        >
+                    </h1>
+
+                    <p class="mt-4 text-sm text-neutral-400">
+                        Last updated: September 15, 2026
+                    </p>
+                </header>
+
+                <div
+                    class="prose-legal flex flex-col gap-10 text-[15px] leading-relaxed text-neutral-600"
+                >
+                    <p>Welcome to Entablature.</p>
+
+                    <p>
+                        These Terms of Service ("Terms") govern your access to
+                        and use of Entablature website, platform, and related
+                        services (collectively, the "Service"). Entablature is
+                        a publishing platform for research and blogs.
+                    </p>
+
+                    <p>
+                        By accessing or using the Service, you agree to these
+                        Terms. If you do not agree to these Terms, you should
+                        not use the Service.
+                    </p>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            1. Description of Entablature
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature is an editorial publishing platform
+                            where users can discover and read published research
+                            and blogs.
+                        </p>
+
+                        <p class="mb-2">
+                            Users may sign in with Google and, depending on
+                            their role and the features available to them,
+                            create, submit, edit, review, and publish content.
+                        </p>
+
+                        <p class="mb-2">
+                            Entablature supports two primary types of published
+                            content:
+                        </p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>Research</li>
+
+                            <li>Blogs</li>
+                        </ul>
+
+                        <p class="mb-2">
+                            Research is intended for more structured,
+                            research-focused publication and is subject to an
+                            editorial review process.
+                        </p>
+
+                        <p class="mb-2">
+                            Blogs are lighter editorial content intended for
+                            accessible reading and publication. Blog content is
+                            subject to the applicable publishing requirements
+                            and limits of the Service, including a maximum
+                            length of 3,000 words.
+                        </p>
+
+                        <p>
+                            Only content that has been accepted for publication
+                            and made public through the Service is publicly
+                            available.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            2. Account and Authentication
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature uses Google OAuth for authentication.
+                        </p>
+
+                        <p class="mb-2">
+                            You must use your own Google account when signing in
+                            to the Service and are responsible for maintaining
+                            the security of that account.
+                        </p>
+
+                        <p class="mb-2">
+                            A newly authenticated user may be assigned the
+                            default Researcher role. Entablature may assign or
+                            change roles in accordance with its access-control
+                            policies.
+                        </p>
+
+                        <p class="mb-2">
+                            The Service may provide different capabilities
+                            depending on your role.
+                        </p>
+
+                        <p class="mb-2">
+                            Entablature currently supports the following roles:
+                        </p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>Public User</li>
+
+                            <li>Researcher</li>
+
+                            <li>Editor</li>
+
+                            <li>Admin</li>
+                        </ul>
+
+                        <p>
+                            You may only access features and information that
+                            your role permits you to access.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            3. Research and Blog Submissions
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature allows eligible users to create and
+                            submit content for publication.
+                        </p>
+
+                        <p class="mb-2">
+                            Research submissions are subject to the editorial
+                            review workflow operated by Entablature.
+                        </p>
+
+                        <p class="mb-2">
+                            Research may have the following statuses:
+                        </p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>Draft</li>
+
+                            <li>Pending Review</li>
+
+                            <li>Published</li>
+
+                            <li>Rejected</li>
+                        </ul>
+
+                        <p class="mb-2">
+                            Researchers cannot directly change research to
+                            Published. Research must be approved through the
+                            applicable editorial process before it becomes
+                            publicly available.
+                        </p>
+
+                        <p class="mb-2">
+                            If research is rejected, the Researcher may edit and
+                            resubmit it where resubmission is permitted.
+                        </p>
+
+                        <p class="mb-2">
+                            Blogs are published separately from Research but
+                            remain subject to Entablature's publishing
+                            requirements and editorial standards.
+                        </p>
+
+                        <p>
+                            Submitting any content does not guarantee
+                            publication.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            4. User Content and Ownership
+                        </h2>
+
+                        <p class="mb-2">
+                            You retain ownership of the original content that
+                            you submit to Entablature.
+                        </p>
+
+                        <p class="mb-2">
+                            By submitting content to the Service, you grant The
+                            Entablature the limited rights necessary to operate the
+                            Service, including the rights to:
+                        </p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>Receive and store your content.</li>
+
+                            <li>
+                                Process and display your content within the
+                                Service.
+                            </li>
+
+                            <li>
+                                Review your submitted content where applicable.
+                            </li>
+
+                            <li>Make approved content publicly available.</li>
+
+                            <li>
+                                Display your published content on Entablature.
+                            </li>
+
+                            <li>
+                                Technically reproduce, format, store, and
+                                deliver your content as necessary to operate the
+                                Service.
+                            </li>
+                        </ul>
+
+                        <p class="mb-2">
+                            For published content, these rights continue for as
+                            long as the content remains published on The
+                            Entablature or as otherwise necessary for legitimate
+                            operational, legal, or archival purposes.
+                        </p>
+
+                        <p>
+                            You are responsible for ensuring that you have the
+                            necessary rights and permissions for any content,
+                            images, documents, data, or other materials that you
+                            submit.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            5. Your Responsibilities
+                        </h2>
+
+                        <p class="mb-2">
+                            You are responsible for the content you submit to
+                            Entablature.
+                        </p>
+
+                        <p class="mb-2">You must not submit content that:</p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>
+                                You do not have the right or permission to use
+                                or publish.
+                            </li>
+
+                            <li>Violates applicable laws or regulations.</li>
+
+                            <li>
+                                Infringes another person's intellectual property
+                                or other rights.
+                            </li>
+
+                            <li>
+                                Contains malicious code or material intended to
+                                compromise the Service.
+                            </li>
+
+                            <li>
+                                Attempts to impersonate another person or
+                                misrepresent authorship.
+                            </li>
+
+                            <li>
+                                Attempts to bypass the Service's authentication,
+                                authorization, or editorial controls.
+                            </li>
+                        </ul>
+
+                        <p class="mb-2">
+                            You must provide accurate information associated
+                            with your account and content.
+                        </p>
+
+                        <p>
+                            You must not attempt to access another user's
+                            private research, administrative functions,
+                            editorial functions, audit records, or other
+                            restricted information.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            6. Editorial Review and Publication
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature maintains an editorial process for
+                            research submissions.
+                        </p>
+
+                        <p class="mb-2">
+                            Editors may review submitted research and either
+                            approve or reject it.
+                        </p>
+
+                        <p class="mb-2">
+                            An approval causes the research to become Published
+                            and publicly accessible through Entablature.
+                        </p>
+
+                        <p class="mb-2">
+                            A rejection may include a reason provided by the
+                            Editor.
+                        </p>
+
+                        <p class="mb-2">
+                            Editorial decisions may be recorded as part of The
+                            Entablature's review and audit systems.
+                        </p>
+
+                        <p>
+                            Entablature may also establish or update editorial
+                            policies governing submission, review, resubmission,
+                            and publication.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            7. Blogs
+                        </h2>
+
+                        <p class="mb-2">Entablature also publishes blogs.</p>
+
+                        <p class="mb-2">
+                            Blogs are intended to provide lighter editorial
+                            content and are distinct from formal Research
+                            publications.
+                        </p>
+
+                        <p class="mb-2">
+                            Blog content is subject to a maximum length of 3,000
+                            words.
+                        </p>
+
+                        <p class="mb-2">
+                            Entablature may determine whether a submitted blog
+                            meets its publishing requirements and may decline,
+                            edit, remove, or otherwise restrict content where
+                            permitted by these Terms and applicable policy.
+                        </p>
+
+                        <p>
+                            The publication of a Blog does not mean that The
+                            Entablature independently verifies every statement,
+                            claim, source, or opinion contained within it.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            8. Published Content
+                        </h2>
+
+                        <p class="mb-2">
+                            Once content is published, it may be publicly
+                            accessible through Entablature.
+                        </p>
+
+                        <p class="mb-2">
+                            Published Research and Blogs may be displayed on
+                            public pages and may be discoverable through the
+                            Service's public search and other public discovery
+                            mechanisms.
+                        </p>
+
+                        <p class="mb-2">
+                            Entablature may use publicly available metadata
+                            associated with published content to provide
+                            navigation, search, and publication functionality.
+                        </p>
+
+                        <p>
+                            Private content, including unpublished research, is
+                            not intended to be publicly indexed.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            9. Attachments and Graphs
+                        </h2>
+
+                        <p class="mb-2">
+                            Research may support PDF attachments and structured
+                            embedded graphs.
+                        </p>
+
+                        <p class="mb-2">
+                            PDF attachments are subject to the technical
+                            requirements of the Service, including a maximum
+                            file size of 1 MB per file.
+                        </p>
+
+                        <p class="mb-2">
+                            Graphs are stored as structured data rather than
+                            static images so that they can remain editable.
+                        </p>
+
+                        <p>
+                            Entablature may validate, inspect, reject, remove,
+                            or restrict attachments or graph data that do not
+                            satisfy the Service's technical or security
+                            requirements.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            10. Account Suspension and Termination
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature may suspend or restrict an account
+                            where necessary to:
+                        </p>
+
+                        <ul class="list-disc pl-5 flex flex-col gap-1 mb-2">
+                            <li>
+                                Protect the security or integrity of the
+                                Service.
+                            </li>
+
+                            <li>Prevent unauthorized access or misuse.</li>
+
+                            <li>Enforce these Terms.</li>
+
+                            <li>Investigate suspected abuse or violations.</li>
+
+                            <li>Comply with applicable law.</li>
+                        </ul>
+
+                        <p class="mb-2">
+                            An Administrator may also suspend or reactivate
+                            accounts in accordance with the platform's
+                            administrative policies.
+                        </p>
+
+                        <p>You may stop using the Service at any time.</p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            11. Intellectual Property of Entablature
+                        </h2>
+
+                        <p class="mb-2">
+                            The Service, including its software, design,
+                            branding, interface, structure, and other original
+                            materials provided by Entablature, is owned by or
+                            licensed to Entablature and is protected by
+                            applicable intellectual-property laws.
+                        </p>
+
+                        <p>
+                            Except as expressly permitted by these Terms or
+                            applicable law, you may not copy, modify, reproduce,
+                            distribute, sell, or exploit the Service or its
+                            proprietary materials without permission.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            12. Privacy
+                        </h2>
+
+                        <p class="mb-2">
+                            Your use of Entablature is also subject to our
+                            <a
+                                href="/privacy"
+                                class="text-blue-600 hover:underline ml-1"
+                                >Privacy Policy</a
+                            >, which explains how we collect, use, store, and
+                            protect personal information.
+                        </p>
+
+                        <p>
+                            The Privacy Policy forms part of these Terms by
+                            reference.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            13. Availability and Changes to the Service
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature may modify, update, suspend, or
+                            discontinue features of the Service from time to
+                            time.
+                        </p>
+
+                        <p class="mb-2">
+                            We do not guarantee that the Service or any
+                            particular feature will always be available,
+                            uninterrupted, or error-free.
+                        </p>
+
+                        <p>
+                            We may make changes where necessary to improve the
+                            Service, maintain security, comply with applicable
+                            requirements, or support the continued operation of
+                            the platform.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            14. Disclaimer
+                        </h2>
+
+                        <p class="mb-2">
+                            Entablature provides a platform for publishing and
+                            reading Research and Blogs.
+                        </p>
+
+                        <p class="mb-2">
+                            Except where expressly stated otherwise, The
+                            Entablature does not guarantee the accuracy,
+                            completeness, reliability, or suitability of
+                            information contained in user-submitted content.
+                        </p>
+
+                        <p class="mb-2">
+                            Published content represents the views and work of
+                            its respective authors and should not automatically
+                            be understood as the views of Entablature.
+                        </p>
+
+                        <p>
+                            Nothing on the Service constitutes professional,
+                            legal, medical, financial, or other specialized
+                            advice unless expressly identified as such by an
+                            appropriately qualified provider.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            15. Limitation of Liability
+                        </h2>
+
+                        <p class="mb-2">
+                            To the maximum extent permitted by applicable law,
+                            Entablature and its operators, employees,
+                            contractors, and service providers will not be
+                            liable for indirect, incidental, consequential,
+                            special, or punitive damages arising from or related
+                            to your use of, or inability to use, the Service.
+                        </p>
+
+                        <p>
+                            Nothing in these Terms excludes or limits liability
+                            that cannot legally be excluded or limited under
+                            applicable law.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            16. Governing Law
+                        </h2>
+
+                        <p>
+                            These Terms are governed by the laws of
+
+                            <span class="italic text-neutral-400"
+                                >{GOVERNING_JURISDICTION}</span
+                            >, without regard to its conflict-of-law principles,
+                            except where applicable law requires otherwise.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            17. Changes to These Terms
+                        </h2>
+
+                        <p class="mb-2">
+                            We may update these Terms from time to time.
+                        </p>
+
+                        <p class="mb-2">
+                            When material changes are made, we may communicate
+                            them through the Service or other appropriate means.
+                        </p>
+
+                        <p>
+                            The "Last Updated" date at the beginning of these
+                            Terms indicates when the Terms were most recently
+                            revised.
+                        </p>
+                    </section>
+
+                    <section>
+                        <h2 class="text-lg font-semibold text-neutral-900 mb-3">
+                            18. Contact
+                        </h2>
+
+                        <p>
+                            If you have questions, concerns, legal requests, or
+                            other inquiries regarding these Terms, please
+                            contact us at:
+
+                            <a
+                                href={`mailto:${CONTACT_EMAIL}`}
+                                class="text-blue-600 hover:underline"
+                                >{CONTACT_EMAIL}</a
+                            >
+                        </p>
+                    </section>
+                </div>
+            </article>
+        </main>
+
+        <Footer />
+
+        <AuthModalController client:load />
+    </body>
+</html>

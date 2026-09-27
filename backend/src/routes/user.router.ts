@@ -1,0 +1,57 @@
+import { NextFunction, Request, Response, Router } from "express";
+import {
+  authenticateWithPassport,
+  createUser,
+  getAccessToken,
+  getUser,
+  googleCallback,
+  handleAuthFailure,
+  logout,
+  updateUser,
+  getMe,
+  searchUsers,
+  refreshAccessToken,
+} from "../controllers/auth.controller.js";
+import config from "../controllers/config/config.js";
+import passport from "../controllers/config/passport-config.js";
+import { authenticate } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/multer.middleware.js";
+
+const userRouter = Router();
+const isProd = config.NODE_ENV === "production";
+
+userRouter.route("/signup").post(createUser);
+userRouter.get("/getuser/:id", authenticate, getUser);
+userRouter.put("/update/:id", authenticate, upload.single("avatar"), updateUser);
+userRouter.get("/me", authenticate, getMe);
+
+userRouter.get("/auth/google", authenticateWithPassport);
+
+userRouter.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/api/user/auth/failure",
+    failureMessage: true,
+  }),
+  googleCallback,
+);
+
+userRouter.get("/search",authenticate, searchUsers);
+userRouter.post("/logout", (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
+  return res.status(200).json({ success: true, message: "Logged out successfully" });
+});
+
+userRouter.get("/auth/failure", handleAuthFailure);
+
+userRouter.get("/get-access-token", getAccessToken);
+
+userRouter.get("/refresh-token", refreshAccessToken);
+
+userRouter.get("/logout", logout);
+
+export default userRouter;

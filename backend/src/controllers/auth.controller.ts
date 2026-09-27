@@ -1,0 +1,433 @@
+import { NextFunction, Request, Response } from "express";
+import User from "../models/user.model.js";
+import passport from "./config/passport-config.js";
+import config from "./config/config.js";
+import { ApiError } from "../utils/ApiError.js";
+import jwt from "jsonwebtoken";
+import emailService from "../services/email.service.js";
+import { loginNotificationTemplate } from "../email-templates/login-notification.template.js";
+import fs from "fs/promises";
+import { uploadoncloudinary } from "../services/cloudinary.service.js";
+
+const isProd = config.NODE_ENV === "development";
+
+export const createUser = async (req: Request, res: Response) => {
+  try {
+    const { email, name, avatar } = req.body;
+    const user = await User.create({
+      email,
+      name,
+      avatar,
+      role: "PUBLISHER",
+    });
+
+    res.status(201).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to create user",
+    });
+  }
+};
+
+export const getUser = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get user",
+    });
+  }
+};
+
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    // 'authenticate' middleware attaches the decoded user payload to req.user
+    const userId = (req as any).user?._id || (req as any).user?.id;
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to get user profile" });
+  }
+};
+
+export const searchUsers = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q ? String(req.query.q).trim() : "";
+    if (!query) {
+      return res.status(200).json({ success: true, users: [] });
+    }
+
+    const users = await User.find({
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } }
+      ]
+    })
+      .select("name email")
+      .limit(6);
+
+    return res.status(200).json({ success: true, users });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: "Failed to search users" });
+  }
+};
+
+
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id || (req as any).user?._id;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID required" });
+    }
+
+    const { name, phone_number, dob, avatar } = req.body;
+    let avatarUrl: string | undefined;
+
+    // Handle Multer file if route uses upload middleware
+    if (req.file) {
+      const cloudinaryResponse = await uploadoncloudinary(req.file.path);
+      if (cloudinaryResponse && cloudinaryResponse.secure_url) {
+        avatarUrl = cloudinaryResponse.secure_url;
+      }
+    }
+    // Handle Base64 string sent from frontend preview
+    else if (
+      avatar &&
+      typeof avatar === "string" &&
+      avatar.startsWith("data:image")
+    ) {
+      try {
+        const matches = avatar.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const ext = matches[1].split("/")[1] || "png";
+          const buffer = Buffer.from(matches[2], "base64");
+          const tempPath = `./tmp/avatar-${Date.now()}.${ext}`;
+
+          await fs.mkdir("./tmp", { recursive: true });
+          await fs.writeFile(tempPath, buffer);
+
+          const cloudinaryResponse = await uploadoncloudinary(tempPath);
+          if (cloudinaryResponse && cloudinaryResponse.secure_url) {
+            avatarUrl = cloudinaryResponse.secure_url;
+          }
+        }
+      } catch (uploadErr) {
+        console.error("Base64 Cloudinary processing error:", uploadErr);
+      }
+    } else if (
+      avatar &&
+      typeof avatar === "string" &&
+      avatar.startsWith("http")
+    ) {
+      avatarUrl = avatar;
+    }
+
+    const updateData: any = {
+      ...(name && { name: name.trim() }),
+      ...(phone_number !== undefined && { phone_number: phone_number.trim() }),
+      ...(dob && { dob: new Date(dob) }),
+      ...(avatarUrl && { avatar: avatarUrl }),
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { returnDocument: "after", runValidators: true },
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error: any) {
+    console.error("Update error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getEditor = async (req: Request, res: Response) => {
+  try {
+    const editor = await User.find({ role: "EDITOR" });
+    if (!editor) {
+      return res.status(404).json({ msg: "no editor found" });
+    }
+    return res.status(200).json({ msg: "editors found", editor });
+  } catch (error) {
+    return res.status(500).json({ msg: `Internal server error` });
+  }
+};
+
+export const getPublisher = async (req: Request, res: Response) => {
+  try {
+    const editor = await User.find({ role: "PUBLISHER" });
+    if (!editor) {
+      return res.status(404).json({ msg: "no editor found" });
+    }
+    return res.status(200).json({ msg: "editors found", editor });
+  } catch (error) {
+    return res.status(500).json({ msg: `Internal server error` });
+  }
+};
+export const authenticateWithPassport = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { site } = req.query;
+  passport.authenticate("google", {
+    scope: ["openid", "profile", "email"],
+    state: site ? String(site) : undefined,
+  })(req, res, next);
+};
+
+export const googleCallback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { state: site } = req.query;
+    const user = req.user;
+    console.log("site:", site);
+
+    if (!user) {
+      return next(new ApiError(401, "Authentication failed"));
+    }
+
+    // May require in future for use.
+    // if (site === "admin" && user.role !== "ADMIN") {
+    //   return res.redirect(
+    //     `${config.ADMIN_CLIENT_URL}/auth/login?error=admin_access_denied`,
+    //   );
+    // }
+
+    const accessToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    const userExists = await User.findById(user._id.toString());
+
+    if (!userExists) {
+      return res.status(500).json(new ApiError(500, "Authentication Failure"));
+    }
+
+    if (userExists) {
+      userExists.accessToken = accessToken;
+    }
+
+    await userExists.save();
+
+    const loginTime = new Date().toLocaleString("en-US", {
+      dateStyle: "full",
+      timeStyle: "long",
+    });
+    const ipAddress =
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+      req.ip ||
+      "Unknown";
+    const userAgent = req.headers["user-agent"] || "Unknown device";
+
+    if (site === "admin" || site === "editor") {
+      emailService
+        .sendEmail(
+          userExists.email,
+          "New Sign In to Your Account",
+          loginNotificationTemplate({ loginTime, ipAddress, userAgent }),
+        )
+        .catch((err) => console.error("Failed to send login email:", err));
+    }
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const isAdminPortalUser = site === "admin" || site === "editor";
+
+    res.redirect(
+      `${isAdminPortalUser ? config.ADMIN_CLIENT_URL : config.CLIENT_URL}/verify-token?token=${accessToken}&role=${userExists.role}`,
+    );
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+export const handleAuthFailure = (req: Request, res: Response) => {
+  const error = req.session.messages?.[0];
+
+  if (error?.code === "EMAIL_ALREADY_EXISTS") {
+    return res.status(409).json({
+      success: false,
+      error: {
+        code: "EMAIL_ALREADY_EXISTS",
+        message:
+          "Account already exists via email auth. Please log in instead.",
+      },
+    });
+  }
+
+  return res.status(400).json({
+    success: false,
+    error: {
+      code: "OAUTH_FAILED",
+      message: "Google authentication failed",
+    },
+  });
+};
+
+export const getAccessToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .json(new ApiError(401, "No refresh token provided"));
+    }
+
+    const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as {
+      userId: string;
+    };
+
+    const userExists = await User.findById(decoded.userId);
+
+    if (!userExists) {
+      return res.status(404).json(new ApiError(404, "User not found"));
+    }
+
+    const accessToken = userExists.accessToken;
+
+    if (!accessToken) {
+      const newAccessToken = userExists.generateAuthToken();
+      userExists.accessToken = newAccessToken;
+      await userExists.save();
+      return res.status(200).json({
+        success: true,
+        accessToken: newAccessToken,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      accessToken,
+      role: userExists.role,
+    });
+  } catch (error: any) {
+    return res
+      .status(401)
+      .json(new ApiError(401, "Error fetching access token", error));
+  }
+};
+
+export const refreshAccessToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .json(new ApiError(401, "No refresh token provided"));
+    }
+
+    const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as {
+      userId: string;
+    };
+
+    const userExists = await User.findById(decoded.userId);
+
+    if (!userExists) {
+      return res.status(404).json(new ApiError(404, "User not found"));
+    }
+
+    const newAccessToken = userExists.generateAuthToken();
+    userExists.accessToken = newAccessToken;
+    await userExists.save();
+
+    return res.status(200).json({
+      success: true,
+      accessToken: newAccessToken,
+    });
+  } catch (error: any) {
+    return res
+      .status(401)
+      .json(new ApiError(401, "Error refreshing access token", error));
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(401)
+        .json(new ApiError(401, "No refresh token provided"));
+    }
+
+    const decoded = jwt.verify(refreshToken, config.JWT_REFRESH_SECRET) as {
+      userId: string;
+    };
+
+    const userExists = await User.findById(decoded.userId);
+
+    if (!userExists) {
+      return res.status(404).json(new ApiError(404, "User not found"));
+    }
+
+    userExists.accessToken = "";
+
+    await userExists.save();
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error: any) {
+    return res.status(401).json(new ApiError(401, "Error logging out", error));
+  }
+};

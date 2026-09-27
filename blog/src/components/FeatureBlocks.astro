@@ -1,0 +1,255 @@
+---
+// src/components/FeatureBlocks.astro
+---
+
+<section
+    class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 flex flex-col gap-28 sm:gap-36 overflow-hidden"
+>
+    <!-- Feature 1: Explore what's been researched -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div
+            class="fb-reveal flex flex-col text-center lg:text-left order-2 lg:order-1"
+        >
+            <span
+                class="mx-auto lg:mx-0 mb-4 inline-flex w-fit items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400"
+            >
+                <span class="size-1.5 rounded-full bg-blue-600"></span>
+                Growing every day
+            </span>
+            <h2
+                class="text-3xl sm:text-4xl lg:text-[2.6rem] font-bold tracking-tight leading-tight text-neutral-900 dark:text-neutral-100"
+            >
+                Explore what's been <span
+                    class="font-literata italic font-normal">researched</span
+                >.
+            </h2>
+            <p
+                class="mt-4 text-sm sm:text-base text-neutral-500 dark:text-neutral-400 max-w-md mx-auto lg:mx-0"
+            >
+                A growing collection of published work, made easier to explore —
+                searchable, tagged, and organized by field.
+            </p>
+
+            <div
+                class="mt-8 flex items-center justify-center lg:justify-start gap-8"
+            >
+                <div>
+                    <div
+                        class="text-xl font-bold text-neutral-900 dark:text-neutral-100"
+                    >
+                        12,482
+                    </div>
+                    <div class="text-xs text-neutral-500 dark:text-neutral-400">
+                        Papers indexed
+                    </div>
+                </div>
+                <div class="h-8 w-px bg-neutral-200 dark:bg-neutral-800"></div>
+                <div>
+                    <div
+                        class="text-xl font-bold text-neutral-900 dark:text-neutral-100"
+                    >
+                        40+
+                    </div>
+                    <div class="text-xs text-neutral-500 dark:text-neutral-400">
+                        Fields covered
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fb-reveal relative order-1 lg:order-2">
+        <!-- main visual -->
+        <div
+            class="relative aspect-[4/3] w-full rounded-3xl overflow-hidden ring-1 ring-black/[0.04] shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+        >
+            <img
+                src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=900&h=700&fit=crop"
+                alt="Researcher reviewing published work"
+                loading="lazy"
+                class="h-full w-full object-cover"
+            />
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0"
+            >
+            </div>
+        </div>
+
+        <!-- floating search card -->
+        <div
+            class="absolute -bottom-6 -left-4 sm:-left-8 w-[78%] sm:w-[65%] rounded-2xl bg-white dark:bg-[#111114] p-4 shadow-[0_10px_40px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+        >
+            <div
+                class="flex items-center gap-2 rounded-lg bg-neutral-100 dark:bg-neutral-800/60 px-3 py-2"
+            >
+                <svg
+                    class="w-4 h-4 text-neutral-400 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                >
+                    <circle cx="11" cy="11" r="7" stroke-linecap="round"
+                    ></circle>
+                    <path stroke-linecap="round" d="M21 21l-3.5-3.5"></path>
+                </svg>
+                <span class="text-xs text-neutral-400 truncate"
+                    >Search "climate modeling"…</span
+                >
+            </div>
+            <div class="mt-3 flex flex-wrap gap-1.5">
+                {
+                    ['AI Ethics', 'Neuroscience', 'Climate'].map((tag) => (
+                        <span class="rounded-full bg-neutral-100 dark:bg-neutral-800/60 px-2.5 py-1 text-[11px] font-medium text-neutral-600 dark:text-neutral-300">
+                            {tag}
+                        </span>
+                    ))
+                }
+            </div>
+        </div>
+
+        <!-- floating badge -->
+        <div
+            class="absolute -top-4 -right-3 sm:-right-6 flex items-center gap-2 rounded-full bg-white dark:bg-[#111114] pl-2 pr-3.5 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04]"
+        >
+            <span
+                class="flex size-7 items-center justify-center rounded-full bg-amber-500/15 text-amber-600"
+            >
+                <svg
+                    class="w-3.5 h-3.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.958a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.447a1 1 0 00-.363 1.118l1.287 3.957c.3.922-.755 1.688-1.538 1.118l-3.367-2.446a1 1 0 00-1.176 0l-3.367 2.446c-.783.57-1.838-.196-1.538-1.118l1.287-3.957a1 1 0 00-.363-1.118L2.063 9.385c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.958z"
+                    ></path>
+                </svg>
+            </span>
+            <div class="leading-tight">
+                <div
+                    class="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100"
+                >
+                    Peer reviewed
+                </div>
+                <div class="text-[10px] text-neutral-400">
+                    Editorially vetted
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Feature 2: Discover what's worth reading -->
+<div class="flex flex-col items-center text-center">
+    <span
+        class="mb-4 inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400"
+    >
+        <span class="size-1.5 rounded-full bg-amber-600"></span>
+        Curated weekly
+    </span>
+    <h2
+        class="fb-reveal text-3xl sm:text-4xl lg:text-[2.6rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+        <span class="font-literata italic font-normal">Discover</span> what's worth
+        reading
+    </h2>
+    <p
+        class="fb-reveal mt-4 text-sm sm:text-base text-neutral-500 dark:text-neutral-400 max-w-xl"
+    >
+        Explore research, ideas, and perspectives from Entablature.
+    </p>
+
+    <div
+        class="fb-reveal mt-14 sm:mt-16 w-full flex items-center justify-center"
+    >
+        <div
+            class="relative flex items-center justify-center w-full max-w-3xl h-[300px] sm:h-[340px]"
+        >
+            {
+                [
+                    {
+                        img: 'https://images.unsplash.com/photo-1517842645767-c639042777db?w=500&h=380&fit=crop',
+                        tag: 'Culture',
+                        title: 'Why editorial rigor still matters',
+                        rotate: '-rotate-8 -translate-x-20 sm:-translate-x-28',
+                        z: 'z-0',
+                    },
+                    {
+                        img: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=560&h=420&fit=crop',
+                        tag: 'Research',
+                        title: 'Inside the review pipeline',
+                        rotate: 'rotate-0',
+                        z: 'z-20',
+                    },
+                    {
+                        img: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=500&h=380&fit=crop',
+                        tag: 'Essay',
+                        title: 'Reading in the age of feeds',
+                        rotate: 'rotate-8 translate-x-20 sm:translate-x-28',
+                        z: 'z-0',
+                    },
+                ].map((card) => (
+                    <article
+                        class:list={[
+                            'fb-card absolute w-52 sm:w-64 rounded-2xl bg-white dark:bg-[#111114] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.12)] ring-1 ring-black/[0.04] transition-transform duration-500 ease-out hover:-translate-y-2 hover:rotate-0 hover:z-30',
+                            card.rotate,
+                            card.z,
+                        ]}
+                    >
+                        <div class="aspect-[4/3] w-full overflow-hidden rounded-xl">
+                            <img
+                                src={card.img}
+                                alt={card.title}
+                                loading="lazy"
+                                class="h-full w-full object-cover"
+                            />
+                        </div>
+                        <div class="mt-3 px-1 pb-1 text-left">
+                            <span class="text-[10px] font-semibold uppercase tracking-wide text-blue-600">
+                                {card.tag}
+                            </span>
+                            <h3 class="mt-1 text-sm font-semibold leading-snug text-neutral-900 dark:text-neutral-100 line-clamp-2">
+                                {card.title}
+                            </h3>
+                        </div>
+                    </article>
+                ))
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    const els = document.querySelectorAll('.fb-reveal, .fb-card');
+    const io = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    (entry.target as HTMLElement).style.transitionDelay =
+                        `${(i % 5) * 60}ms`;
+                    entry.target.classList.add('fb-in');
+                    io.unobserve(entry.target);
+                }
+            });
+        },
+        { threshold: 0.15 },
+    );
+    els.forEach((el) => {
+        el.classList.add('fb-out');
+        io.observe(el);
+    });
+</script>
+
+<style>
+    .fb-out {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+            opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fb-in {
+        opacity: 1;
+        transform: translateY(0);
+    }
+</style>

@@ -1,0 +1,1785 @@
+---
+import { ClientRouter } from "astro:transitions";
+import "../styles/globals.css";
+import SEOHead from "@/components/SEOHead.astro";
+import { apiClient } from "../api/api-client";
+import { LOGO_URL } from "@/constants";
+
+const THE_ENTABLATURE_LOGO = LOGO_URL;
+const GLOBE_THUMB =
+  "https://pub-4288b22fbd4c41f8ae1e48c844c96685.r2.dev/pexels-codioful-7130491.jpg&auto=format&fit=crop&q=80";
+
+// Exact category list synchronized with your platform
+const categoriesList = [
+  "International Relations",
+  "Diplomacy",
+  "Public Policy",
+  "Geopolitics",
+  "Law & Governance",
+  "Technology & Society",
+  "Human Rights",
+  "International Law",
+  "Economic Partnerships",
+  "Humanitarian Aid",
+  "Crisis Management",
+  "Risk Management",
+  "Environmental Policy",
+  "Global Security",
+  "Macroeconomics",
+  "General"
+];
+
+let papers: any[] = [];
+let paginationMeta = {
+  page: 1,
+  totalPages: 1,
+  totalBlogs: 0,
+  hasMore: false,
+};
+
+let researchers: any[] = [];
+
+const compactFormatter = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatCompact(value: number): string {
+  return compactFormatter.format(Math.max(0, value ?? 0));
+}
+
+try {
+  const res = await apiClient.get("/blog/published", {
+    params: { page: 1, limit: 100 },
+  });
+
+  const data = res.data;
+  {
+    const rawList = data.blogs || data.papers || (Array.isArray(data) ? data : []);
+
+    if (Array.isArray(rawList)) {
+      if (data.pagination) {
+        paginationMeta = data.pagination;
+      }
+
+      papers = rawList.map((b: any, idx: number) => {
+        const rawExcerpt = b.excerpt || "";
+        let cleanExcerpt = rawExcerpt;
+        if (!cleanExcerpt && b.content) {
+          const textOnly = b.content.replace(/<[^>]*>/g, "").trim();
+          cleanExcerpt = textOnly.length > 150 ? textOnly.substring(0, 150) + "..." : textOnly;
+        }
+        const finalExcerpt = cleanExcerpt || "Read the full publication for more details.";
+
+        const readMinutes = Math.max(
+          1,
+          Math.ceil((finalExcerpt.length || 500) / 400),
+        );
+
+        // 🛠️ Robust docType resolver handling old DB structures and new DB lowercase values or missing fields
+        const rawType = String(b.docType || b.type || "").trim().toUpperCase();
+        let finalDocType = "RESEARCH";
+        if (rawType.includes("BLOG") || rawType.includes("THOUGHT")) {
+          finalDocType = "BLOG";
+        } else if (rawType.includes("RESEARCH") || rawType.includes("PAPER")) {
+          finalDocType = "RESEARCH";
+        } else {
+          finalDocType = (b.category === "General" && b.title?.length < 40) ? "BLOG" : "RESEARCH";
+        }
+
+        // 🛠️ Unified Authors Map (combines primary author & co-authors without duplicates)
+        const authorMap = new Map();
+        
+        if (b.author) {
+          const primaryAuth = typeof b.author === 'object' ? b.author : { _id: b.author, name: "Researcher" };
+          const pId = String(primaryAuth._id || primaryAuth);
+          authorMap.set(pId, {
+            id: pId,
+            name: primaryAuth.name || "Researcher",
+            avatar: primaryAuth.avatar || "",
+          });
+        }
+
+        if (Array.isArray(b.coAuthors)) {
+          b.coAuthors.forEach((co: any) => {
+            if (co) {
+              const coObj = typeof co === 'object' ? co : { _id: co, name: "Contributor" };
+              const coId = String(coObj._id || coObj);
+              if (!authorMap.has(coId)) {
+                authorMap.set(coId, {
+                  id: coId,
+                  name: coObj.name || "Contributor",
+                  avatar: coObj.avatar || "",
+                });
+              }
+            }
+          });
+        }
+
+        const unifiedAuthors = Array.from(authorMap.values());
+        const primaryAuthor = unifiedAuthors[0] || { name: "Researcher", avatar: "", id: "" };
+        const viewNum = Number(b.views) || 0;
+
+        return {
+          id: b._id || idx,
+          title: b.title || "Untitled Document",
+          category: b.category || "General",
+          summary: finalExcerpt,
+          authorName: primaryAuthor.name,
+          authorId: primaryAuthor.id,
+          authorAvatar: primaryAuthor.avatar,
+          authorsList: unifiedAuthors, 
+          docType: finalDocType,
+          publishedDate:
+            b.publishedAt || b.createdAt
+              ? new Date(b.publishedAt || b.createdAt).toLocaleDateString(
+                  "en-US",
+                  { month: "short", day: "numeric", year: "numeric" },
+                )
+              : "Sep 7, 2026",
+          rawTimestamp:
+            b.publishedAt || b.createdAt
+              ? new Date(b.publishedAt || b.createdAt).getTime()
+              : 0,
+          views: viewNum,
+          viewsCount: `${formatCompact(viewNum)} views`,
+          readTimeMinutes: readMinutes,
+          readTime: `${readMinutes} min read`,
+          thumbnail: b.coverImage?.url || GLOBE_THUMB,
+          slug: b.slug,
+          pdfs: b.pdfs || [],
+        };
+      });
+    }
+  }
+} catch (e) {
+  console.error("Error fetching published documents:", e);
+}
+
+// Fallback preview items if database is completely empty
+if (papers.length === 0) {
+  papers = Array.from({ length: 6 }).map((_, i) => ({
+    id: i + 1,
+    title: i % 2 === 0 ? "AI Ethics: Navigating the Moral Landscape of Machine Learning" : "The Future of Digital Diplomacy in a Multipolar World",
+    category: categoriesList[i % categoriesList.length],
+    summary: "An examination of how emerging digital technologies and policy shifts are reshaping global practices.",
+    authorName: i % 2 === 0 ? "Dr. Emily Tran" : "Dr. Sarah Mitchell",
+    authorId: `fallback-author-${i}`,
+    authorAvatar: "",
+    authorsList: [{ name: i % 2 === 0 ? "Dr. Emily Tran" : "Dr. Sarah Mitchell", avatar: "", id: `fallback-author-${i}` }],
+    docType: i % 2 === 0 ? "BLOG" : "RESEARCH",
+    publishedDate: "Oct 5, 2026",
+    rawTimestamp: Date.now() - i * 86400000,
+    views: 45300 - i * 1200,
+    viewsCount: "45.3k views",
+    readTimeMinutes: 10,
+    readTime: "10 min read",
+    thumbnail: GLOBE_THUMB,
+    slug: `document-slug-${i + 1}`,
+  }));
+}
+
+// Build Top Researchers from ALL unified authors (Primary + Co-Authors)
+try {
+  const authorAgg: Record<
+    string,
+    { name: string; authorId: string; avatar: string; totalViews: number }
+  > = {};
+
+  papers.forEach((p) => {
+    if (Array.isArray(p.authorsList)) {
+      p.authorsList.forEach((auth: any) => {
+        const key = auth.id || auth.name;
+        if (!authorAgg[key]) {
+          authorAgg[key] = {
+            name: auth.name,
+            authorId: auth.id,
+            avatar: auth.avatar,
+            totalViews: 0,
+          };
+        }
+        authorAgg[key].totalViews += Number(p.views) || 0;
+        if (!authorAgg[key].avatar && auth.avatar) {
+          authorAgg[key].avatar = auth.avatar;
+        }
+      });
+    }
+  });
+
+  researchers = Object.values(authorAgg)
+    .sort((a, b) => b.totalViews - a.totalViews)
+    .slice(0, 100)
+    .map((r) => ({
+      name: r.name,
+      authorId: r.authorId,
+      avatarUrl: r.avatar,
+      views: r.totalViews,
+      viewsLabel: `${formatCompact(r.totalViews)} views`,
+    }));
+} catch (e) {
+  console.error("Error aggregating researcher views:", e);
+}
+
+if (researchers.length === 0) {
+  researchers = [
+    { name: "Divyesh Moraniya", authorId: "", views: 2347700, viewsLabel: "2.2M+ views", avatarUrl: "" },
+    { name: "Test User", authorId: "", views: 1265300, viewsLabel: "1.3M+ views", avatarUrl: "" },
+    { name: "Viral Vaghela", authorId: "", views: 19, viewsLabel: "29 views", avatarUrl: "" },
+  ];
+}
+
+// Count categories
+const categoryCounts: Record<string, number> = {};
+categoriesList.forEach((c) => {
+  categoryCounts[c] = 0;
+});
+papers.forEach((p) => {
+  const cat = categoriesList.includes(p.category) ? p.category : "General";
+  categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+});
+---
+
+<!doctype html>
+<html lang="en" class="bg-[#f9f9fb]">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="description" content="Discover professional research papers and insightful blog posts on Entablature platform." />
+    <ClientRouter />
+    <title>Entablature - Discover Publications</title>
+    <SEOHead 
+      title="Discover Research Papers & Publications | Entablature" 
+      description="Explore verified research papers and scholarly articles on global policy and technology." 
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=account_circle"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+    <style>
+      html,
+      body {
+        background-color: #f9f9fb !important;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .no-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scroll {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 12px);
+      }
+
+      /* Professional Tooltip & Stacked Avatar Styling with Downward Arrow Tooltip Display */
+      .paper-card {
+        overflow: visible !important;
+      }
+      .author-avatar-group {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+      .author-avatar-group .author-tooltip-box {
+        display: none;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #0f172a;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 8px;
+        white-space: nowrap;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
+        z-index: 100;
+        pointer-events: none;
+      }
+      .author-avatar-group:hover .author-tooltip-box {
+        display: block;
+      }
+      .author-tooltip-box::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 4px;
+        border-style: solid;
+        border-color: #0f172a transparent transparent transparent;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-[#f9f9fb] text-[#111] antialiased h-screen w-screen overflow-hidden flex flex-col m-0 p-0 font-sans select-none relative"
+    data-total-pages={paginationMeta.totalPages}
+    data-current-page={paginationMeta.page}
+    data-has-more={paginationMeta.hasMore ? "true" : "false"}
+  >
+    <!-- DESKTOP HOVER DRAWER SIDEBAR -->
+    <aside
+      class="hidden md:flex group absolute top-0 left-0 bottom-0 z-50 w-[80px] hover:w-[220px] bg-[#f9f9fb] hover:shadow-[10px_0_30px_rgba(0,0,0,0.06)] transition-all duration-300 ease-in-out flex-col items-start px-3.5 py-6 shrink-0"
+    >
+      <a
+        href="/"
+        class="flex items-center h-[56px] px-1 mb-6 overflow-hidden shrink-0 w-full"
+        title="Entablature"
+      >
+        <img
+          src={THE_ENTABLATURE_LOGO}
+          alt="Entablature"
+          class="h-12 w-auto max-w-none object-contain shrink-0"
+        />
+      </a>
+
+      <nav class="flex flex-col gap-3.5 w-full">
+        <!-- Discover -->
+        <a
+          href="/discover"
+          class="flex items-center h-11 w-11 group-hover:w-full rounded-full bg-[#e8f0fe] text-[#0d0d0c] transition-all duration-300 overflow-hidden"
+          title="Discover"
+        >
+          <div class="w-11 h-11 shrink-0 flex items-center justify-center">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              class="shrink-0"
+            >
+              <path
+                d="M4.31802 19.682C3 18.364 3 16.2426 3 12C3 7.75736 3 5.63604 4.31802 4.31802C5.63604 3 7.75736 3 12 3C16.2426 3 18.364 3 19.682 4.31802C21 5.63604 21 7.75736 21 12C21 16.2426 21 18.364 19.682 19.682C18.364 21 16.2426 21 12 21C7.75736 21 5.63604 21 4.31802 19.682Z"
+                stroke="#0D0D0C"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M7 14L9.79289 11.2071C10.1834 10.8166 10.8166 10.8166 11.2071 11.2071L12.7929 12.7929C13.1834 13.1834 13.8166 13.8166 14.2071 12.7929L17 10"
+                stroke="#0D0D0C"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <span
+            class="text-[15px] font-medium text-[#0d0d0c] opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pl-1 pr-4"
+          >
+            Discover
+          </span>
+        </a>
+
+        <!-- Desk -->
+        <a
+          href="/desk"
+          class="flex items-center h-11 w-11 group-hover:w-full rounded-full text-[#0d0d0c] hover:bg-[#e8f0fe] transition-all duration-300 overflow-hidden"
+          title="Desk"
+        >
+          <div class="w-11 h-11 shrink-0 flex items-center justify-center">
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M22 12H2" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 17H16C14.1144 17 13.1716 17 12.5858 16.4142C12 15.8284 12 14.8856 12 13V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 12V22M20 12V22" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15.0401 2.59903C14.3088 1.90313 13.1232 1.90313 12.3919 2.59903C11.9784 2.99247 11.8198 3.4444 12.2767 3.87914L13.6927 5.22669C14.149 5.66087 14.6219 5.51714 15.0401 5.11912C15.7714 4.42322 15.7714 3.29494 15.0401 2.59903ZM15.0401 2.59903C15.5358 2.27324 16.0932 1.81764 16.7123 2.0763C17.0028 2.19766 17.2022 2.49474 17.6008 3.08889L19.0993 5.3223C19.6639 6.16376 19.9462 6.5845 19.9931 7.06138C20.0401 7.53825 19.8448 8.00129 19.4542 8.92735L18.1584 12" stroke="#0F172A" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M4 12V7.5C4 6.37313 4.4506 6 5.5 6C6.5494 6 7 6.37313 7 7.5V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 12V7.5C7 6.37313 7.4506 6 8.5 6C9.5494 6 10 6.37313 10 7.5V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          </div>
+          <span
+            class="text-[15px] font-medium text-[#0d0d0c] opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pl-1 pr-4"
+          >
+            Desk
+          </span>
+        </a>
+
+        <!-- Account -->
+        <a
+          href="/account"
+          class="flex items-center h-11 w-11 group-hover:w-full rounded-full text-[#0d0d0c] hover:bg-[#e8f0fe] transition-all duration-300 overflow-hidden"
+          title="Account"
+        >
+          <div class="w-11 h-11 shrink-0 flex items-center justify-center">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              class="shrink-0"
+            >
+              <path
+                d="M18.4984 19.1511C17.3377 17.4018 15.2947 16.2009 12.9313 16.0569L11.9984 16C11.6652 16.0083 11.3547 16.0194 11.0617 16.0325C8.71722 16.1376 6.66598 17.3796 5.5 19.1511"
+                stroke="#0D0D0C"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M14.9961 10C14.9961 11.6569 13.6529 13 11.9961 13C10.3392 13 8.99609 11.6569 8.99609 10C8.99609 8.34315 10.3392 7 11.9961 7C13.6529 7 14.9961 8.34315 14.9961 10Z"
+                stroke="#0D0D0C"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+              <path
+                d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+                stroke="#0D0D0C"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <span
+            class="text-[15px] font-medium text-[#0d0d0c] opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pl-1 pr-4"
+          >
+            Account
+          </span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Top Header -->
+    <header
+      class="h-[68px] sm:h-[76px] px-4 md:pl-[90px] md:pr-8 flex items-center justify-between shrink-0 z-20 bg-[#f9f9fb] gap-3"
+    >
+      <a
+        href="/"
+        class="flex md:hidden items-center shrink-0 mr-1"
+        title="Entablature"
+      >
+        <img
+          src={THE_ENTABLATURE_LOGO}
+          alt="Entablature"
+          class="h-8 w-auto object-contain"
+        />
+      </a>
+
+      <div class="hidden lg:block w-[100px]"></div>
+
+      <!-- Search Input -->
+      <div class="flex-1 max-w-[560px]">
+        <div class="relative w-full">
+          <svg
+            class="w-4 h-4 absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-[#666]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input
+            type="text"
+            id="global-search-input"
+            placeholder="Search research paper/researcher..."
+            class="w-full pl-10 sm:pl-11 pr-4 py-2 sm:py-2.5 text-[12.5px] sm:text-[13px] bg-white text-[#111] placeholder-[#777] rounded-full border border-neutral-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.02)] focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all"
+          />
+        </div>
+      </div>
+
+      <!-- Research / Blog Doc-Type Toggle -->
+      <div
+        id="doctype-toggle"
+        class="hidden sm:flex items-center bg-white border border-neutral-200/60 rounded-full p-1 shadow-[0_1px_3px_rgba(0,0,0,0.02)] shrink-0"
+      >
+        <button
+          type="button"
+          id="toggle-research"
+          data-doctype="RESEARCH"
+          class="doctype-tab px-5 h-9 rounded-full text-[13px] font-semibold transition-all whitespace-nowrap cursor-pointer bg-[#1b62f2] text-white shadow-[0_2px_8px_rgba(27,98,242,0.25)]"
+        >
+          Research
+        </button>
+        <button
+          type="button"
+          id="toggle-blog"
+          data-doctype="BLOG"
+          class="doctype-tab px-5 h-9 rounded-full text-[13px] font-semibold transition-all whitespace-nowrap cursor-pointer text-[#555] hover:text-[#1b62f2]"
+        >
+          Blog
+        </button>
+      </div>
+    </header>
+
+    <!-- MOBILE DOCTYPE TOGGLE + QUICK ACCESS ACTION BADGES -->
+    <div class="flex md:hidden flex-col gap-2 px-4 pb-2 shrink-0">
+      <div
+        id="doctype-toggle-mobile"
+        class="flex items-center bg-white border border-neutral-200/60 rounded-full p-1 shadow-sm w-full"
+      >
+        <button
+          type="button"
+          data-doctype="RESEARCH"
+          class="doctype-tab-mobile flex-1 h-9 rounded-full text-[13px] font-semibold transition-all cursor-pointer bg-[#1b62f2] text-white shadow-[0_2px_8px_rgba(27,98,242,0.25)]"
+        >
+          Research
+        </button>
+        <button
+          type="button"
+          data-doctype="BLOG"
+          class="doctype-tab-mobile flex-1 h-9 rounded-full text-[13px] font-semibold transition-all cursor-pointer text-[#555]"
+        >
+          Blog
+        </button>
+      </div>
+
+      <div class="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          id="open-areas-modal"
+          class="flex-1 py-2 px-3 bg-white border border-neutral-200/60 rounded-full text-xs font-medium text-neutral-800 shadow-sm flex items-center justify-center gap-1.5 active:bg-neutral-50 cursor-pointer"
+        >
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          <span id="mobile-area-btn-label">Specific research area</span>
+        </button>
+
+        <button
+          type="button"
+          id="open-researchers-modal"
+          class="flex-1 py-2 px-3 bg-white border border-neutral-200/60 rounded-full text-xs font-semibold text-neutral-800 shadow-sm flex items-center justify-center gap-1.5 active:bg-neutral-50 cursor-pointer"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Top Researchers</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Viewport Area -->
+    <div
+      class="flex-1 flex px-4 sm:px-6 md:pl-[90px] md:pr-8 pb-16 md:pb-6 pt-0 gap-5 lg:gap-7 overflow-hidden max-w-[1600px] w-full mx-auto"
+    >
+      <!-- 3-Column Desktop Stage -->
+      <div class="flex-1 flex gap-5 lg:gap-7 overflow-hidden">
+        <!-- COLUMN 1: Research Areas (Desktop) -->
+        <div
+          class="hidden md:flex w-[220px] lg:w-[245px] shrink-0 flex-col items-center h-full"
+        >
+          <div class="w-full flex items-center justify-between mb-3 px-1">
+            <h2 id="left-sidebar-heading" class="text-[14px] font-bold text-[#111] tracking-tight">
+              Research Areas
+            </h2>
+            <button
+              type="button"
+              id="btn-clear-area-filter"
+              class="hidden text-[11px] font-bold text-[#1b62f2] hover:underline cursor-pointer"
+            >
+              Reset
+            </button>
+          </div>
+
+          <div class="w-full relative mb-3 shrink-0">
+            <svg
+              class="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#777]"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <input
+              type="text"
+              id="area-search-input"
+              placeholder="Specific research area..."
+              class="w-full pl-9 pr-3 py-2 text-[12px] bg-white placeholder-[#777] rounded-full border border-neutral-200/50 shadow-[0_1px_2px_rgba(0,0,0,0.02)] focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div
+            id="areas-list"
+            class="w-full flex-1 overflow-y-auto no-scroll flex flex-col gap-1.5 py-0.5"
+          >
+            {
+              categoriesList.map((catName) => (
+                <button
+                  type="button"
+                  class="area-item w-full flex items-center justify-between px-3.5 py-2.5 bg-white hover:bg-[#e8f0fe] hover:text-[#1b62f2] rounded-2xl text-[12px] text-[#222] transition-colors border border-neutral-200/40 shadow-[0_1px_2px_rgba(0,0,0,0.02)] shrink-0 group cursor-pointer text-left"
+                  data-category={catName}
+                >
+                  <span class="truncate font-medium">{catName}</span>
+                  <span class="category-num-badge text-[11px] text-[#888] group-hover:text-[#1b62f2] shrink-0 ml-1.5 font-normal transition-colors" data-category={catName}>
+                    {categoryCounts[catName] || 0}
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- COLUMN 2: Cards Feed & Dynamic Interactive Filter -->
+        <main
+          class="flex-1 h-full overflow-y-auto no-scroll pr-0.5 sm:pr-1 flex flex-col gap-4 relative"
+        >
+          <!-- SMOOTH LOADING OVERLAY FOR INSTANT TRANSITION FEEDBACK -->
+          <div
+            id="feed-loading-overlay"
+            class="absolute inset-0 bg-[#f9f9fb]/80 backdrop-blur-[2px] z-20 hidden items-center justify-center transition-opacity duration-200"
+          >
+            <div class="flex flex-col items-center gap-2">
+              <svg class="animate-spin w-8 h-8 text-[#1b62f2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+              <span class="text-xs font-semibold text-neutral-600">Loading publications...</span>
+            </div>
+          </div>
+
+          <!-- Interactive Filter Tabs -->
+          <div
+            class="sticky top-0 z-10 pb-2 pt-0.5 bg-[#f9f9fb]/95 backdrop-blur-sm flex items-center overflow-x-auto no-scroll justify-start sm:justify-center gap-2.5 shrink-0 px-1"
+          >
+            <button
+              type="button"
+              data-filter="all"
+              class="filter-tab px-5 h-[36px] flex items-center justify-center rounded-full text-[13px] font-semibold transition-all whitespace-nowrap shrink-0 cursor-pointer bg-[#1b62f2] text-white shadow-[0_2px_8px_rgba(27,98,242,0.25)] border border-transparent"
+            >
+              All
+            </button>
+
+            <button
+              type="button"
+              data-filter="recent"
+              class="filter-tab px-5 h-[36px] flex items-center justify-center rounded-full text-[13px] font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer bg-white text-[#1a1a1a] hover:bg-[#e8f0fe] hover:text-[#1b62f2] border border-neutral-200/60 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              Most recent
+            </button>
+
+            <button
+              type="button"
+              data-filter="views"
+              class="filter-tab px-5 h-[36px] flex items-center justify-center rounded-full text-[13px] font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer bg-white text-[#1a1a1a] hover:bg-[#e8f0fe] hover:text-[#1b62f2] border border-neutral-200/60 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              Most viewed
+            </button>
+
+            <button
+              type="button"
+              data-filter="readtime"
+              class="filter-tab px-5 h-[36px] flex items-center justify-center rounded-full text-[13px] font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer bg-white text-[#1a1a1a] hover:bg-[#e8f0fe] hover:text-[#1b62f2] border border-neutral-200/60 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              Least read time
+            </button>
+          </div>
+
+          <!-- Active Category Indicator Badge -->
+          <div
+            id="active-category-pill"
+            class="hidden items-center justify-between px-4 py-2 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-[#1b62f2] shrink-0"
+          >
+            <div class="flex items-center gap-1.5 font-bold">
+              <span>Category:</span>
+              <span id="active-category-name" class="underline">None</span>
+            </div>
+            <button
+              type="button"
+              id="btn-dismiss-category-pill"
+              class="font-bold text-neutral-500 hover:text-rose-600 px-1"
+              >✕</button
+            >
+          </div>
+
+          <!-- Active Researcher Indicator Badge -->
+          <div
+            id="active-researcher-pill"
+            class="hidden items-center justify-between px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-700 shrink-0"
+          >
+            <div class="flex items-center gap-1.5 font-bold">
+              <span>Researcher:</span>
+              <span id="active-researcher-name" class="underline">None</span>
+            </div>
+            <button
+              type="button"
+              id="btn-dismiss-researcher-pill"
+              class="font-bold text-neutral-500 hover:text-rose-600 px-1"
+              >✕</button
+            >
+          </div>
+
+          <!-- Cards Feed -->
+          <div id="papers-feed" class="flex flex-col gap-4 pb-20">
+            {
+              papers.map((item: any, idx: number) => {
+                const gradients = [
+                  "bg-gradient-to-br from-[#e0f2fe]/90 via-[#f0f9ff]/70 to-[#dcfce7]/80",
+                  "bg-gradient-to-br from-[#ecfdf5]/90 via-[#f0fdf4]/70 to-[#fdf4ff]/80",
+                  "bg-gradient-to-br from-[#faf5ff]/95 via-[#fdf4ff]/70 to-[#fff7ed]/80",
+                  "bg-gradient-to-br from-[#fff7ed]/95 via-[#fffbeb]/70 to-[#e0f2fe]/80"
+                ];
+                const cardBg = gradients[idx % gradients.length];
+                const authorNamesString = item.authorsList ? item.authorsList.map((a: any) => a.name.toLowerCase()).join(",") : (item.authorName || "").toLowerCase();
+
+                return (
+                  <a
+                    href={`/papers/${item.slug || item.id}`}
+                    data-astro-prefetch="viewport"
+                    class={`paper-card ${cardBg} rounded-[28px] border border-neutral-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] cursor-pointer group`}
+                    data-original-index={idx}
+                    data-timestamp={item.rawTimestamp || 0}
+                    data-views={item.views || 0}
+                    data-readtime={item.readTimeMinutes || 1}
+                    data-category={item.category || ""}
+                    data-doctype={item.docType || "RESEARCH"}
+                    data-author-ids={item.authorsList ? item.authorsList.map((a: any) => a.id).filter(Boolean).join(",") : (item.authorId || "")}
+                    data-title={item.title ? item.title.toLowerCase() : ""}
+                    data-author={authorNamesString}
+                  >
+                    <!-- Thumbnail Banner: Full width on mobile, side banner on desktop -->
+                    <div class="w-full sm:w-[220px] lg:w-[240px] h-[160px] sm:h-auto shrink-0 bg-neutral-900 relative overflow-hidden">
+                      <img
+                        src={item.thumbnail || GLOBE_THUMB}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    </div>
+
+                    <!-- Right Content Area -->
+                    <div class="flex-1 p-4 sm:p-7 flex flex-col justify-between min-w-0">
+                      <div class="flex flex-col gap-1.5">
+                        <span class="inline-block px-3.5 sm:px-4 py-1 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-[10px] sm:text-[11px] font-bold tracking-wider uppercase self-start shadow-sm">
+                          {item.category}
+                        </span>
+                        <h3 class="text-[16px] sm:text-[19px] font-extrabold text-[#0f172a] group-hover:text-[#1b62f2] leading-[1.3] sm:leading-[1.35] tracking-tight mt-1 line-clamp-2 transition-colors">
+                          {item.title}
+                        </h3>
+                      </div>
+
+                      <p class="text-[13px] sm:text-[14px] text-[#475569] leading-[1.45] line-clamp-2 my-2 font-normal">
+                        {item.summary}
+                      </p>
+
+                      <div class="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-[12px] text-[#64748b] flex-wrap font-medium pt-2 border-t border-neutral-200/60">
+                        <!-- Unified Authors Rendering: Stacked Logo Badges for 3+ authors with arrow pointing type tooltip -->
+                        <div class="flex items-center gap-2 max-w-full overflow-visible py-2">
+                          {item.authorsList && item.authorsList.length > 2 ? (
+                            <div class="flex items-center -space-x-2.5 overflow-visible py-1 px-1">
+                              {item.authorsList.map((auth: any) => (
+                                <div class="author-avatar-group shrink-0 cursor-pointer">
+                                  {auth.avatar ? (
+                                    <img onerror="this.onerror=null; this.src='https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=';" src={auth.avatar} alt={auth.name} class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shadow-sm border-2 border-white hover:scale-110 hover:z-20 transition-transform" />
+                                  ) : (
+                                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold shadow-sm border-2 border-white hover:scale-110 hover:z-20 transition-transform">
+                                      {auth.name.charAt(0)}
+                                    </div>
+                                  )}
+                                  <span class="author-tooltip-box">{auth.name}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            item.authorsList && item.authorsList.map((auth: any) => (
+                              <div class="flex items-center gap-1.5 shrink-0">
+                                {auth.avatar ? (
+                                  <img onerror="this.onerror=null; this.src='https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=';" src={auth.avatar} alt="" class="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover shadow-sm border border-white" />
+                                ) : (
+                                  <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] sm:text-[11px] font-extrabold shadow-sm border border-white">
+                                    {auth.name.charAt(0)}
+                                  </div>
+                                )}
+                                <span class="text-[#0f172a] font-bold truncate max-w-[90px] sm:max-w-none">{auth.name}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        <span class="hidden sm:inline">•</span>
+                        <span class="hidden sm:inline">{item.publishedDate}</span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          {item.readTime}
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                          {item.viewsCount}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })
+            }
+
+            <!-- Empty Search / Filter State -->
+            <div
+              id="no-papers-msg"
+              class="hidden flex-col items-center justify-center p-12 text-center bg-white rounded-3xl border border-neutral-200/50"
+            >
+              <span class="text-3xl mb-2">🔍</span>
+              <h4 id="empty-state-title" class="font-bold text-neutral-900 text-sm">
+                No items found
+              </h4>
+              <p class="text-neutral-500 text-xs mt-1">
+                Try selecting another category or clearing your search keywords.
+              </p>
+            </div>
+          </div>
+
+          <!-- DYNAMIC PAGINATION SECTION (Load More Button) -->
+          <div
+            class="flex flex-col items-center justify-center pt-2 pb-20 shrink-0"
+          >
+            <button
+              type="button"
+              id="btn-load-more"
+              class={`px-6 py-2.5 rounded-full bg-white border border-neutral-200/80 text-xs font-bold text-neutral-800 hover:bg-[#e8f0fe] hover:text-[#1b62f2] hover:border-[#1b62f2] shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-2 ${paginationMeta.hasMore ? "flex" : "hidden"}`}
+            >
+              <span id="load-more-text">Load More</span>
+              <svg
+                id="load-more-spinner"
+                class="hidden animate-spin w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+              </svg>
+            </button>
+            <p
+              id="all-loaded-msg"
+              class={`text-xs text-neutral-400 font-medium mt-2 ${paginationMeta.hasMore ? "hidden" : "block"}`}
+            >
+              Showing all available publications.
+            </p>
+          </div>
+        </main>
+
+        <!-- COLUMN 3: Top 100 Researchers (Desktop) -->
+        <aside
+          class="hidden lg:flex w-[250px] xl:w-[270px] shrink-0 h-full flex-col items-center"
+        >
+          <h2
+            id="right-sidebar-heading"
+            class="text-[14px] font-bold text-[#111] mb-3 text-center tracking-tight shrink-0"
+          >
+            Top 100 Researchers
+          </h2>
+
+          <div
+            class="w-full bg-white rounded-[28px] p-4 border border-neutral-200/40 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex-1 overflow-hidden flex flex-col"
+          >
+            <div
+              id="researchers-list"
+              class="flex-1 overflow-y-auto no-scroll flex flex-col gap-2 pr-0.5"
+            >
+              {
+                researchers.map((res: any) => (
+                  <div
+                    class="researcher-item flex items-center justify-between hover:bg-[#e8f0fe] p-2 rounded-2xl transition-colors cursor-pointer shrink-0 group"
+                    data-author-id={res.authorId || ""}
+                    data-author-name={res.name}
+                  >
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <div class="w-9 h-9 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center text-xs text-neutral-600 font-bold">
+                        {res.avatarUrl ? (
+                          <img
+                            onerror="this.onerror=null; this.src='https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=';"
+                            src={res.avatarUrl}
+                            alt=""
+                            class="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{res.name?.charAt(0) || "R"}</span>
+                        )}
+                      </div>
+                      <div class="flex flex-col min-w-0">
+                        <span class="text-[12.5px] font-semibold text-[#111] group-hover:text-[#1b62f2] truncate leading-tight transition-colors">
+                          {res.name}
+                        </span>
+                        <div class="flex items-center gap-1 text-[11px] text-[#64748b] mt-0.5">
+                          <svg
+                            class="w-3.5 h-3.5 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                          <span class="truncate">{res.viewsLabel}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <svg
+                      class="w-3.5 h-3.5 text-neutral-400 group-hover:text-[#1b62f2] shrink-0 ml-1 transition-colors"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION DOCK -->
+    <nav
+      class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#f9f9fb]/95 backdrop-blur-lg border-t border-neutral-200/60 px-4 py-1.5 flex items-center justify-around h-[56px] safe-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.03)]"
+    >
+      <a
+        href="/discover"
+        class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 text-[#1b62f2]"
+        title="Discover"
+      >
+        <div
+          class="w-8 h-6 rounded-full bg-[#e8f0fe] flex items-center justify-center"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="w-5 h-5 overflow-visible">
+            <path
+              d="M4.31802 19.682C3 18.364 3 16.2426 3 12C3 7.75736 3 5.63604 4.31802 4.31802C5.63604 3 7.75736 3 12 3C16.2426 3 18.364 3 19.682 4.31802C21 5.63604 21 7.75736 21 12C21 16.2426 21 18.364 19.682 19.682C18.364 21 16.2426 21 12 21C7.75736 21 5.63604 21 4.31802 19.682Z"
+              stroke="#1B62F2"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M7 14L9.79289 11.2071C10.1834 10.8166 10.8166 10.8166 11.2071 11.2071L12.7929 12.7929C13.1834 13.1834 13.8166 13.8166 14.2071 12.7929L17 10"
+              stroke="#1B62F2"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span class="text-[10px] font-bold tracking-tight">Discover</span>
+      </a>
+
+      <a
+        href="/desk"
+        class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 text-neutral-500 hover:text-neutral-900"
+        title="Desk"
+      >
+        <div class="w-5 h-5 flex items-center justify-center">
+           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M22 12H2" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 17H16C14.1144 17 13.1716 17 12.5858 16.4142C12 15.8284 12 14.8856 12 13V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M4 12V22M20 12V22" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15.0401 2.59903C14.3088 1.90313 13.1232 1.90313 12.3919 2.59903C11.9784 2.99247 11.8198 3.4444 12.2767 3.87914L13.6927 5.22669C14.149 5.66087 14.6219 5.51714 15.0401 5.11912C15.7714 4.42322 15.7714 3.29494 15.0401 2.59903ZM15.0401 2.59903C15.5358 2.27324 16.0932 1.81764 16.7123 2.0763C17.0028 2.19766 17.2022 2.49474 17.6008 3.08889L19.0993 5.3223C19.6639 6.16376 19.9462 6.5845 19.9931 7.06138C20.0401 7.53825 19.8448 8.00129 19.4542 8.92735L18.1584 12" stroke="#0F172A" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M4 12V7.5C4 6.37313 4.4506 6 5.5 6C6.5494 6 7 6.37313 7 7.5V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7 12V7.5C7 6.37313 7.4506 6 8.5 6C9.5494 6 10 6.37313 10 7.5V12" stroke="#0F172A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="text-[10px] font-medium tracking-tight">Desk</span>
+      </a>
+
+      <!-- <a
+        href="/notification"
+        class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 text-neutral-500 hover:text-neutral-900"
+        title="Notification"
+      >
+        <div class="w-5 h-5 flex items-center justify-center relative">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M15.5 18C15.5 19.933 13.933 21.5 12 21.5C10.067 21.5 8.5 19.933 8.5 18"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M19.2311 18H4.76887C3.79195 18 3 17.208 3 16.2311C3 15.762 3.18636 15.3121 3.51809 14.9803L4.12132 14.3771C4.68393 13.8145 5 13.0514 5 12.2558V9.5C5 5.63401 8.13401 2.5 12 2.5C15.866 2.5 19 5.634 19 9.5V12.2558C19 13.0514 19.3161 13.8145 19.8787 14.3771L20.4819 14.9803C20.8136 15.3121 21 15.762 21 16.2311C21 17.208 20.208 18 19.2311 18Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M19 9C21.2088 9 23 7.2088 23 5C23 2.7904 21.2088 1 19 1C16.7912 1 15 2.7904 15 5C15 7.2088 16.7912 9 19 9Z"
+              fill="#2563EB"></path>
+          </svg>
+        </div>
+        <span class="text-[10px] font-medium tracking-tight">Alerts</span>
+      </a> -->
+
+      <a
+        href="/account"
+        class="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 text-neutral-500 hover:text-neutral-900"
+        title="Account"
+      >
+        <div class="w-5 h-5 flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M18.4984 19.1511C17.3377 17.4018 15.2947 16.2009 12.9313 16.0569L11.9984 16C11.6652 16.0083 11.3547 16.0194 11.0617 16.0325C8.71722 16.1376 6.66598 17.3796 5.5 19.1511"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M14.9961 10C14.9961 11.6569 13.6529 13 11.9961 13C10.3392 13 8.99609 11.6569 8.99609 10C8.99609 8.34315 10.3392 7 11.9961 7C13.6529 7 14.9961 8.34315 14.9961 10Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <path
+              d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <span class="text-[10px] font-medium tracking-tight">Account</span>
+      </a>
+    </nav>
+
+    <!-- MOBILE MODAL SHEET: RESEARCH AREAS -->
+    <div
+      id="modal-areas"
+      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex-col justify-end transition-opacity duration-200"
+    >
+      <div
+        class="bg-[#f9f9fb] w-full max-h-[80vh] rounded-t-[28px] p-5 flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-200"
+      >
+        <div
+          class="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto mb-4 shrink-0"
+        >
+        </div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-base font-bold text-neutral-900">
+            Explore Research Areas
+          </h3>
+          <button
+            type="button"
+            class="close-modal text-xs font-semibold text-neutral-500 p-1 cursor-pointer"
+            >Close</button
+          >
+        </div>
+        <div class="overflow-y-auto no-scroll flex flex-col gap-2 py-2">
+          {
+            categoriesList.map((catName) => (
+              <button
+                type="button"
+                class="mobile-area-item flex items-center justify-between px-4 py-3 bg-white hover:bg-[#e8f0fe] hover:text-[#1b62f2] rounded-2xl text-xs font-medium text-neutral-900 border border-neutral-200/50 shadow-sm active:bg-neutral-50 transition-colors text-left cursor-pointer"
+                data-category={catName}
+              >
+                <span>{catName}</span>
+                <span class="text-neutral-400 font-normal">
+                  {categoryCounts[catName] || 0}
+                </span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE MODAL SHEET: TOP 100 RESEARCHERS -->
+    <div
+      id="modal-researchers"
+      class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex-col justify-end transition-opacity duration-200"
+    >
+      <div
+        class="bg-[#f9f9fb] w-full max-h-[80vh] rounded-t-[28px] p-5 flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-200"
+      >
+        <div
+          class="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto mb-4 shrink-0"
+        >
+        </div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-base font-bold text-neutral-900">
+            Top 100 Researchers
+          </h3>
+          <button
+            type="button"
+            class="close-modal text-xs font-semibold text-neutral-500 p-1 cursor-pointer"
+            >Close</button
+          >
+        </div>
+        <div class="overflow-y-auto no-scroll flex flex-col gap-2.5 py-2">
+          {
+            researchers.map((res: any) => (
+              <div
+                class="mobile-researcher-item flex items-center justify-between bg-white hover:bg-[#e8f0fe] p-3 rounded-2xl border border-neutral-200/50 shadow-sm active:bg-neutral-50 transition-colors cursor-pointer group"
+                data-author-id={res.authorId || ""}
+                data-author-name={res.name}
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-neutral-200 overflow-hidden flex items-center justify-center text-xs text-neutral-600 shrink-0 font-bold">
+                    {res.avatarUrl ? (
+                      <img src={res.avatarUrl} alt="" class="w-full h-full object-cover" />
+                    ) : (
+                      <span>{res.name?.charAt(0) || "R"}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-semibold text-neutral-900 group-hover:text-[#1b62f2] transition-colors">
+                      {res.name}
+                    </h4>
+                    <p class="text-[11px] text-neutral-400 mt-0.5">
+                      {res.viewsLabel}
+                    </p>
+                  </div>
+                </div>
+                <svg
+                  class="w-4 h-4 text-neutral-400 group-hover:text-[#1b62f2] transition-colors"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Script -->
+    <script>
+      import { apiClient } from "../api/api-client";
+
+      function initDiscover() {
+        let currentPage =
+          Number(document.body.getAttribute("data-current-page")) || 1;
+        let totalPages =
+          Number(document.body.getAttribute("data-total-pages")) || 1;
+        let hasMore = document.body.getAttribute("data-has-more") === "true";
+        let isLoading = false;
+
+        const filterTabs = document.querySelectorAll(".filter-tab");
+        const papersFeed = document.getElementById("papers-feed");
+        const feedLoadingOverlay = document.getElementById("feed-loading-overlay");
+        const globalSearch = document.getElementById(
+          "global-search-input",
+        ) as HTMLInputElement;
+        const areaButtons = document.querySelectorAll(
+          ".area-item, .mobile-area-item",
+        );
+        const clearAreaBtn = document.getElementById("btn-clear-area-filter");
+        const activeCategoryPill = document.getElementById(
+          "active-category-pill",
+        );
+        const activeCategoryName = document.getElementById(
+          "active-category-name",
+        );
+        const dismissPillBtn = document.getElementById(
+          "btn-dismiss-category-pill",
+        );
+        const activeResearcherPill = document.getElementById(
+          "active-researcher-pill",
+        );
+        const activeResearcherName = document.getElementById(
+          "active-researcher-name",
+        );
+        const dismissResearcherPillBtn = document.getElementById(
+          "btn-dismiss-researcher-pill",
+        );
+        const noPapersMsg = document.getElementById("no-papers-msg");
+        const mobileAreaLabel = document.getElementById(
+          "mobile-area-btn-label",
+        );
+
+        const loadMoreBtn = document.getElementById("btn-load-more");
+        const loadMoreText = document.getElementById("load-more-text");
+        const loadMoreSpinner = document.getElementById("load-more-spinner");
+        const allLoadedMsg = document.getElementById("all-loaded-msg");
+
+        const doctypeTabs = document.querySelectorAll(
+          ".doctype-tab, .doctype-tab-mobile",
+        );
+
+        let activeCategory = "";
+        let currentSort = "all";
+        let activeDocType = "RESEARCH";
+        let activeAuthorId = "";
+        let activeAuthorName = "";
+
+        if (!papersFeed) return;
+
+        function showLoadingOverlay() {
+          if (feedLoadingOverlay) {
+            feedLoadingOverlay.classList.remove("hidden");
+            feedLoadingOverlay.classList.add("flex");
+          }
+        }
+
+        function hideLoadingOverlay() {
+          if (feedLoadingOverlay) {
+            feedLoadingOverlay.classList.add("hidden");
+            feedLoadingOverlay.classList.remove("flex");
+          }
+        }
+
+        function applyFilters() {
+          const query = globalSearch
+            ? globalSearch.value.toLowerCase().trim()
+            : "";
+          const cards = document.querySelectorAll(".paper-card");
+          let visibleCount = 0;
+
+          cards.forEach((c) => {
+            const card = c as HTMLElement;
+            const title = card.dataset.title || "";
+            const author = card.dataset.author || "";
+            const category = card.dataset.category || "";
+            const docType = (card.dataset.doctype || "RESEARCH").toUpperCase();
+            const authorIds = card.dataset.authorIds || "";
+            const textContent = card.innerText.toLowerCase();
+
+            const matchesSearch =
+              !query ||
+              title.includes(query) ||
+              author.includes(query) ||
+              textContent.includes(query);
+            const matchesCategory =
+              !activeCategory ||
+              category.toLowerCase() === activeCategory.toLowerCase();
+            const matchesDocType = docType === activeDocType;
+            
+            const authorIdArr = authorIds.split(",");
+            const matchesAuthor =
+              !activeAuthorId ||
+              authorIdArr.includes(activeAuthorId) ||
+              (author && activeAuthorName && author.includes(activeAuthorName.toLowerCase()));
+
+            if (
+              matchesSearch &&
+              matchesCategory &&
+              matchesDocType &&
+              matchesAuthor
+            ) {
+              card.style.display = "flex";
+              visibleCount++;
+            } else {
+              card.style.display = "none";
+            }
+          });
+
+          if (noPapersMsg) {
+            noPapersMsg.style.display = visibleCount === 0 ? "flex" : "none";
+          }
+        }
+
+        function applySort() {
+          if (!papersFeed) return;
+          const cards = Array.from(papersFeed.querySelectorAll(".paper-card"));
+
+          cards.sort((a, b) => {
+            const cardA = a as HTMLElement;
+            const cardB = b as HTMLElement;
+
+            if (currentSort === "recent") {
+              return (
+                Number(cardB.dataset.timestamp || 0) -
+                Number(cardA.dataset.timestamp || 0)
+              );
+            } else if (currentSort === "views") {
+              return (
+                Number(cardB.dataset.views || 0) -
+                Number(cardA.dataset.views || 0)
+              );
+            } else if (currentSort === "readtime") {
+              return (
+                Number(cardA.dataset.readtime || 0) -
+                Number(cardB.dataset.readtime || 0)
+              );
+            } else {
+              return (
+                Number(cardA.dataset.originalIndex || 0) -
+                Number(cardB.dataset.originalIndex || 0)
+              );
+            }
+          });
+
+          cards.forEach((card) => papersFeed.appendChild(card));
+        }
+
+        function setDocType(docType: string) {
+          activeDocType = docType.toUpperCase();
+          showLoadingOverlay();
+
+          setTimeout(() => {
+            doctypeTabs.forEach((tab) => {
+              const tabType = tab.getAttribute("data-doctype");
+              const isMobile = tab.classList.contains("doctype-tab-mobile");
+
+              if (tabType === activeDocType) {
+                tab.classList.add(
+                  "bg-[#1b62f2]",
+                  "text-white",
+                  "shadow-[0_2px_8px_rgba(27,98,242,0.25)]",
+                );
+                tab.classList.remove("text-[#555]", "hover:text-[#1b62f2]");
+              } else {
+                tab.classList.remove(
+                  "bg-[#1b62f2]",
+                  "text-white",
+                  "shadow-[0_2px_8px_rgba(27,98,242,0.25)]",
+                );
+                tab.classList.add("text-[#555]");
+                if (!isMobile) tab.classList.add("hover:text-[#1b62f2]");
+              }
+            });
+
+            applyFilters();
+            applySort();
+            hideLoadingOverlay();
+          }, 150);
+        }
+
+        doctypeTabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            const docType = tab.getAttribute("data-doctype") || "RESEARCH";
+            setDocType(docType);
+          });
+        });
+
+        function setCategory(catName: string) {
+          activeCategory = activeCategory === catName ? "" : catName;
+
+          areaButtons.forEach((btn) => {
+            const btnCat = btn.getAttribute("data-category");
+            if (
+              activeCategory &&
+              btnCat?.toLowerCase() === activeCategory.toLowerCase()
+            ) {
+              btn.classList.add(
+                "bg-[#e8f0fe]",
+                "text-[#1b62f2]",
+                "border-[#1b62f2]",
+              );
+            } else {
+              btn.classList.remove(
+                "bg-[#e8f0fe]",
+                "text-[#1b62f2]",
+                "border-[#1b62f2]",
+              );
+            }
+          });
+
+          if (activeCategory) {
+            clearAreaBtn?.classList.remove("hidden");
+            if (activeCategoryPill && activeCategoryName) {
+              activeCategoryName.textContent = activeCategory;
+              activeCategoryPill.classList.remove("hidden");
+              activeCategoryPill.classList.add("flex");
+            }
+            if (mobileAreaLabel) mobileAreaLabel.textContent = activeCategory;
+          } else {
+            clearAreaBtn?.classList.add("hidden");
+            activeCategoryPill?.classList.add("hidden");
+            activeCategoryPill?.classList.remove("flex");
+            if (mobileAreaLabel) mobileAreaLabel.textContent = "Specific research area";
+          }
+
+          applyFilters();
+        }
+
+        areaButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const cat = btn.getAttribute("data-category") || "";
+            setCategory(cat);
+
+            const modalAreas = document.getElementById("modal-areas");
+            modalAreas?.classList.add("hidden");
+            modalAreas?.classList.remove("flex");
+          });
+        });
+
+        clearAreaBtn?.addEventListener("click", () => setCategory(""));
+        dismissPillBtn?.addEventListener("click", () => setCategory(""));
+
+        function setResearcher(authorId: string, authorName: string) {
+          const isSame =
+            activeAuthorId === authorId || activeAuthorName === authorName;
+          if (isSame && activeAuthorId) {
+            activeAuthorId = "";
+            activeAuthorName = "";
+          } else {
+            activeAuthorId = authorId;
+            activeAuthorName = authorName;
+          }
+
+          document
+            .querySelectorAll(".researcher-item, .mobile-researcher-item")
+            .forEach((item) => {
+              const itemAuthorId = item.getAttribute("data-author-id") || "";
+              const itemAuthorName =
+                item.getAttribute("data-author-name") || "";
+              const matches =
+                activeAuthorId &&
+                (itemAuthorId === activeAuthorId ||
+                  itemAuthorName === itemAuthorName);
+
+              if (matches) {
+                item.classList.add("bg-[#e8f0fe]");
+              } else {
+                item.classList.remove("bg-[#e8f0fe]");
+              }
+            });
+
+          if (activeAuthorName) {
+            if (activeResearcherPill && activeResearcherName) {
+              activeResearcherName.textContent = activeAuthorName;
+              activeResearcherPill.classList.remove("hidden");
+              activeResearcherPill.classList.add("flex");
+            }
+          } else {
+            activeResearcherPill?.classList.add("hidden");
+            activeResearcherPill?.classList.remove("flex");
+          }
+
+          applyFilters();
+        }
+
+        document
+          .querySelectorAll(".researcher-item, .mobile-researcher-item")
+          .forEach((item) => {
+            item.addEventListener("click", () => {
+              const authorId = item.getAttribute("data-author-id") || "";
+              const authorName = item.getAttribute("data-author-name") || "";
+              setResearcher(authorId, authorName);
+
+              const modalResearchers = document.getElementById(
+                "modal-researchers",
+              );
+              modalResearchers?.classList.add("hidden");
+              modalResearchers?.classList.remove("flex");
+            });
+          });
+
+        dismissResearcherPillBtn?.addEventListener("click", () =>
+          setResearcher("", ""),
+        );
+
+        filterTabs.forEach((tab) => {
+          tab.addEventListener("click", () => {
+            currentSort = tab.getAttribute("data-filter") || "all";
+
+            filterTabs.forEach((t) => {
+              t.classList.remove(
+                "bg-[#1b62f2]",
+                "text-white",
+                "shadow-[0_2px_8px_rgba(27,98,242,0.25)]",
+                "border-transparent",
+              );
+              t.classList.add(
+                "bg-white",
+                "text-[#1a1a1a]",
+                "hover:bg-[#e8f0fe]",
+                "hover:text-[#1b62f2]",
+                "border-neutral-200/60",
+              );
+            });
+
+            tab.classList.remove(
+              "bg-white",
+              "text-[#1a1a1a]",
+              "hover:bg-[#e8f0fe]",
+              "hover:text-[#1b62f2]",
+              "border-neutral-200/60",
+            );
+            tab.classList.add(
+              "bg-[#1b62f2]",
+              "text-white",
+              "shadow-[0_2px_8px_rgba(27,98,242,0.25)]",
+              "border-transparent",
+            );
+
+            applySort();
+          });
+        });
+
+        globalSearch?.addEventListener("input", applyFilters);
+
+        const searchInput = document.getElementById(
+          "area-search-input",
+        ) as HTMLInputElement;
+        searchInput?.addEventListener("input", (e) => {
+          const query = (e.target as HTMLInputElement).value.toLowerCase();
+          document.querySelectorAll(".area-item").forEach((item) => {
+            const textContent = item.textContent?.toLowerCase() || "";
+            (item as HTMLElement).style.display = textContent.includes(query)
+              ? "flex"
+              : "none";
+          });
+        });
+
+        async function loadNextPage() {
+          if (isLoading || !hasMore) return;
+          isLoading = true;
+
+          if (loadMoreSpinner) loadMoreSpinner.classList.remove("hidden");
+          if (loadMoreText) loadMoreText.textContent = "Loading...";
+
+          try {
+            const nextPage = currentPage + 1;
+            const res = await apiClient.get("/blog/published", {
+              params: { page: nextPage, limit: 50 },
+            });
+            const data = res.data;
+
+            if (data.success && Array.isArray(data.blogs)) {
+              if (data.blogs.length === 0) {
+                hasMore = false;
+              } else {
+                currentPage = nextPage;
+                totalPages = data.pagination?.totalPages || totalPages;
+                hasMore = data.pagination?.hasMore ?? currentPage < totalPages;
+
+                const baseIndex = (currentPage - 1) * 50;
+
+                data.blogs.forEach((b: any, index: number) => {
+                  const rawExcerpt = b.excerpt || "";
+                  let cleanExcerpt = rawExcerpt;
+                  if (!cleanExcerpt && b.content) {
+                    const textOnly = b.content.replace(/<[^>]*>/g, "").trim();
+                    cleanExcerpt = textOnly.length > 150 ? textOnly.substring(0, 150) + "..." : textOnly;
+                  }
+                  const finalExcerpt = cleanExcerpt || "Read the full publication for more details.";
+
+                  const readMinutes = Math.max(
+                    1,
+                    Math.ceil((finalExcerpt.length || 500) / 400),
+                  );
+                  const pubDate =
+                    b.publishedAt || b.createdAt
+                      ? new Date(
+                          b.publishedAt || b.createdAt,
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "Aug 20, 2026";
+                  const thumb =
+                    b.coverImage?.url ||
+                    "https://pub-4288b22fbd4c41f8ae1e48c844c96685.r2.dev/pexels-codioful-7130491.jpg&auto=format&fit=crop&q=80";
+                  
+                  const rawType = String(b.docType || b.type || "").trim().toUpperCase();
+                  const docType = rawType.includes("BLOG") || rawType.includes("THOUGHT") ? "BLOG" : "RESEARCH";
+
+                  const authorMap = new Map();
+                  if (b.author) {
+                    const primaryAuth = typeof b.author === 'object' ? b.author : { _id: b.author, name: "Researcher" };
+                    authorMap.set(String(primaryAuth._id || primaryAuth), {
+                      id: String(primaryAuth._id || primaryAuth),
+                      name: primaryAuth.name || "Researcher",
+                      avatar: primaryAuth.avatar || "",
+                    });
+                  }
+                  if (Array.isArray(b.coAuthors)) {
+                    b.coAuthors.forEach((co: any) => {
+                      if (co) {
+                        const coObj = typeof co === 'object' ? co : { _id: co, name: "Contributor" };
+                        const coId = String(coObj._id || coObj);
+                        if (!authorMap.has(coId)) {
+                          authorMap.set(coId, {
+                            id: coId,
+                            name: coObj.name || "Contributor",
+                            avatar: coObj.avatar || "",
+                          });
+                        }
+                      }
+                    });
+                  }
+                  const unifiedAuthors = Array.from(authorMap.values());
+                  const authorIdsString = unifiedAuthors.map((a: any) => a.id).filter(Boolean).join(",");
+                  const authorNamesString = unifiedAuthors.map((a: any) => a.name.toLowerCase()).join(",");
+
+                  const gradients = [
+                    "bg-gradient-to-br from-[#e0f2fe]/90 via-[#f0f9ff]/70 to-[#dcfce7]/80",
+                    "bg-gradient-to-br from-[#ecfdf5]/90 via-[#f0fdf4]/70 to-[#fdf4ff]/80",
+                    "bg-gradient-to-br from-[#faf5ff]/95 via-[#fdf4ff]/70 to-[#fff7ed]/80",
+                    "bg-gradient-to-br from-[#fff7ed]/95 via-[#fffbeb]/70 to-[#e0f2fe]/80"
+                  ];
+                  const cardBg = gradients[(baseIndex + index) % gradients.length];
+
+                  const card = document.createElement("a");
+                  card.href = `/papers/${b.slug || b._id}`;
+                  card.setAttribute("data-astro-prefetch", "viewport");
+                  card.className = `paper-card ${cardBg} rounded-[28px] border border-neutral-200/70 shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col sm:flex-row overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] cursor-pointer group`;
+
+                  card.dataset.originalIndex = String(baseIndex + index);
+                  card.dataset.timestamp = String(
+                    b.publishedAt || b.createdAt
+                      ? new Date(b.publishedAt || b.createdAt).getTime()
+                      : 0,
+                  );
+                  card.dataset.views = String(b.views || 0);
+                  card.dataset.readtime = String(readMinutes);
+                  card.dataset.category = b.category || "";
+                  card.dataset.doctype = docType;
+                  card.dataset.authorIds = authorIdsString;
+                  card.dataset.title = (b.title || "").toLowerCase();
+                  card.dataset.author = authorNamesString;
+
+                  const viewNum = Number(b.views) || 0;
+                  const vLabel = viewNum >= 1000000 ? `${(viewNum/1000000).toFixed(1)}M+ views` : viewNum >= 1000 ? `${(viewNum/1000).toFixed(1)}k+ views` : `${viewNum} views`;
+
+                  const authorsHtml = unifiedAuthors.length > 2
+                    ? `<div class="flex items-center -space-x-2.5 overflow-visible py-1 px-1">
+                        ${unifiedAuthors.map((auth: any) => `
+                          <div class="author-avatar-group shrink-0 cursor-pointer">
+                            ${auth.avatar ? `<img src="${auth.avatar}" alt="${auth.name}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover shadow-sm border-2 border-white hover:scale-110 transition-transform" />` : `<div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-extrabold shadow-sm border-2 border-white hover:scale-110 transition-transform">${auth.name.charAt(0)}</div>`}
+                            <span class="author-tooltip-box">${auth.name}</span>
+                          </div>
+                        `).join('')}
+                       </div>`
+                    : unifiedAuthors.map((auth: any) => `
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          ${auth.avatar ? `<img src="${auth.avatar}" alt="" class="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover shadow-sm border border-white" />` : `<div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] sm:text-[11px] font-extrabold shadow-sm border border-white">${auth.name.charAt(0)}</div>`}
+                          <span class="text-[#0f172a] font-bold truncate max-w-[90px] sm:max-w-none">${auth.name}</span>
+                        </div>
+                      `).join('');
+
+                  card.innerHTML = `
+                    <div class="w-full sm:w-[220px] lg:w-[240px] h-[160px] sm:h-auto shrink-0 bg-neutral-900 relative overflow-hidden">
+                      <img src="${thumb}" alt="" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    </div>
+                    <div class="flex-1 p-4 sm:p-7 flex flex-col justify-between min-w-0">
+                      <div class="flex flex-col gap-1.5">
+                        <span class="inline-block px-3.5 sm:px-4 py-1 bg-[#dbeafe] text-[#1d4ed8] rounded-full text-[10px] sm:text-[11px] font-bold tracking-wider uppercase self-start shadow-sm">
+                          ${b.category || "General"}
+                        </span>
+                        <h3 class="text-[16px] sm:text-[19px] font-extrabold text-[#0f172a] group-hover:text-[#1b62f2] leading-[1.35] tracking-tight mt-1 line-clamp-2 transition-colors">
+                          ${b.title}
+                        </h3>
+                      </div>
+                      <p class="text-[13px] sm:text-[14px] text-[#475569] leading-[1.5] line-clamp-2 my-2.5 font-normal">
+                        ${finalExcerpt}
+                      </p>
+                      <div class="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-[12px] text-[#64748b] flex-wrap font-medium pt-2 border-t border-neutral-200/60">
+                        <div class="flex items-center gap-2.5 max-w-full overflow-x-auto no-scroll py-0.5">
+                          ${authorsHtml}
+                        </div>
+                        <span>•</span>
+                        <span>${pubDate}</span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          ${readMinutes} min read
+                        </span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                          ${vLabel}
+                        </span>
+                      </div>
+                    </div>
+                  `;
+
+                  papersFeed?.appendChild(card);
+                });
+
+                applyFilters();
+                applySort();
+              }
+            }
+          } catch (err) {
+            console.error("Pagination load error:", err);
+          } finally {
+            isLoading = false;
+            if (loadMoreSpinner) loadMoreSpinner.classList.add("hidden");
+            if (loadMoreText)
+              loadMoreText.textContent = "Load More";
+
+            if (!hasMore) {
+              loadMoreBtn?.classList.remove("flex");
+              loadMoreBtn?.classList.add("hidden");
+              allLoadedMsg?.classList.remove("hidden");
+              allLoadedMsg?.classList.add("block");
+            }
+          }
+        }
+
+        loadMoreBtn?.addEventListener("click", loadNextPage);
+
+        const modalAreas = document.getElementById("modal-areas");
+        const modalResearchers = document.getElementById("modal-researchers");
+        const openAreasBtn = document.getElementById("open-areas-modal");
+        const openResearchersBtn = document.getElementById(
+          "open-researchers-modal",
+        );
+        const closeButtons = document.querySelectorAll(".close-modal");
+
+        openAreasBtn?.addEventListener("click", () => {
+          modalAreas?.classList.remove("hidden");
+          modalAreas?.classList.add("flex");
+        });
+
+        openResearchersBtn?.addEventListener("click", () => {
+          modalResearchers?.classList.remove("hidden");
+          modalResearchers?.classList.add("flex");
+        });
+
+        closeButtons.forEach((b) => {
+          b.addEventListener("click", () => {
+            modalAreas?.classList.add("hidden");
+            modalAreas?.classList.remove("flex");
+            modalResearchers?.classList.add("hidden");
+            modalResearchers?.classList.remove("flex");
+          });
+        });
+
+        [modalAreas, modalResearchers].forEach((m) => {
+          m?.addEventListener("click", (e) => {
+            if (e.target === m) {
+              m.classList.add("hidden");
+              m.classList.remove("flex");
+            }
+          });
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const areaParam = urlParams.get("area");
+        const typeParam = urlParams.get("type");
+
+        if (typeParam && typeParam.toUpperCase() === "BLOG") {
+          setDocType("BLOG");
+        } else {
+          const researchCards = document.querySelectorAll('.paper-card[data-doctype="RESEARCH"]');
+          const blogCards = document.querySelectorAll('.paper-card[data-doctype="BLOG"]');
+          if (researchCards.length === 0 && blogCards.length > 0) {
+            setDocType("BLOG");
+          } else {
+            setDocType("RESEARCH");
+          }
+        }
+
+        if (areaParam) {
+          setCategory(areaParam);
+        }
+      }
+
+      document.addEventListener("astro:page-load", initDiscover);
+    </script>
+  </body>
+</html>
