@@ -1315,6 +1315,16 @@ const categories = [
         const bUl = document.getElementById("btn-dock-ul");
         const bQuote = document.getElementById("btn-dock-quote");
 
+        const bJustify = document.getElementById("btn-dock-justify");
+          if (bJustify) bJustify.onclick = () => {
+            if (!quillInstance) return;
+              quillInstance.focus();
+              const range = quillInstance.getSelection() || lastSavedRange || { index: 0, length: 0 };
+              const isOn = quillInstance.getFormat(range).align === "justify";
+              quillInstance.formatLine(range.index, range.length, "align", isOn ? false : "justify");
+              triggerAutosave();
+        };
+
         if (bBold) bBold.onclick = () => executeFormat("bold");
         if (bUnderline) bUnderline.onclick = () => executeFormat("underline");
         if (bItalic) bItalic.onclick = () => executeFormat("italic");
