@@ -1105,6 +1105,29 @@ const categories = [
             modules: { toolbar: false },
           });
 
+          quillInstance.root.addEventListener("paste", (e: ClipboardEvent) => {
+  const cd = e.clipboardData;
+  if (!cd || cd.types.includes("text/html")) return; // rich pastes (Word/web) keep their formatting
+  const text = cd.getData("text/plain");
+  if (!text) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  const paras = text.replace(/\r/g, "").split(/\n\s*\n/)
+    .map((p) => p.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
+
+  const range = quillInstance.getSelection(true);
+  quillInstance.deleteText(range.index, range.length, "user");
+  let idx = range.index;
+  paras.forEach((p, i) => {
+    const chunk = p + (i < paras.length - 1 ? "\n" : "");
+    quillInstance.insertText(idx, chunk, "user");
+    quillInstance.formatLine(idx, 1, "align", "justify", "user");
+    idx += chunk.length;
+  });
+  quillInstance.setSelection(idx, 0, "silent");
+}, true);
+
           quillInstance.on("selection-change", (range: any) => {
             if (range) lastSavedRange = range;
           });
