@@ -262,8 +262,6 @@ export const googleCallback = async (
       req.ip ||
       "Unknown";
     const userAgent = req.headers["user-agent"] || "Unknown device";
-
-    if (site === "admin" || site === "editor") {
       emailService
         .sendEmail(
           userExists.email,
@@ -271,7 +269,6 @@ export const googleCallback = async (
           loginNotificationTemplate({ loginTime, ipAddress, userAgent }),
         )
         .catch((err) => console.error("Failed to send login email:", err));
-    }
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
