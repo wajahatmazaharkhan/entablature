@@ -33,12 +33,12 @@ const buildLoginNotificationMarkup = ({
   ipAddress,
   userAgent,
 }: LoginNotificationParams): string => `
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New Sign-in Notification | The Evidence</title>
+  <title>New Sign-in Notification | Entablature</title>
 </head>
 
 <body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, Helvetica, sans-serif; color: #111111;">
@@ -59,7 +59,7 @@ const buildLoginNotificationMarkup = ({
 
             <span class="fs-4 fw-bold text-dark"
                   style="font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #111111;">
-              The Evidence Portal
+              Entablature Portal
             </span>
           </div>
 
@@ -78,7 +78,7 @@ const buildLoginNotificationMarkup = ({
             </h1>
 
             <p style="margin: 0 0 14px; font-size: 15px; line-height: 1.8; color: #444444;">
-              A new sign-in to your Evidence portal account was recorded. For your
+              A new sign-in to your Entablature portal account was recorded. For your
               security, we are sharing the details of this activity with you.
             </p>
 
@@ -144,7 +144,7 @@ const buildLoginNotificationMarkup = ({
                 Do you have a security concern?
               </p>
               <p style="margin: 0; font-size: 13px; line-height: 1.8; color: #555555;">
-                If this sign-in was not initiated by you, contact The Evidence support
+                If this sign-in was not initiated by you, contact Entablature support
                 team so they can guide you through the appropriate security steps.
               </p>
             </div>
@@ -160,12 +160,12 @@ const buildLoginNotificationMarkup = ({
           <div style="padding: 24px 36px; background-color: #fafafa; border-top: 1px solid #e5e5e5;">
 
             <p style="margin: 0 0 10px; font-size: 12px; line-height: 1.8; color: #666666;">
-              You are receiving this notification to help keep your Evidence
+              You are receiving this notification to help keep your Entablature
               account informed about sign-in activity.
             </p>
 
             <p style="margin: 0 0 6px; font-size: 12px; line-height: 1.7; color: #666666;">
-              &copy; 2026 The Evidence. All rights reserved.
+              &copy; 2026 Entablature. All rights reserved.
             </p>
 
             <p style="margin: 0; font-size: 12px; line-height: 1.7; color: #666666;">
@@ -178,7 +178,7 @@ const buildLoginNotificationMarkup = ({
         <!-- Bottom Brand Line -->
         <div style="padding: 20px 10px 0; text-align: center;">
           <p style="margin: 0; font-size: 11px; line-height: 1.7; letter-spacing: 0.5px; color: #777777;">
-            THE EVIDENCE &nbsp;|&nbsp; ACCOUNT SECURITY
+            Entablature &nbsp;|&nbsp; ACCOUNT SECURITY
           </p>
         </div>
 
