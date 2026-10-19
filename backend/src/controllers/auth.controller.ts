@@ -251,6 +251,10 @@ export const googleCallback = async (
       userExists.accessToken = accessToken;
     }
 
+    if(!userExists.isActive){
+      return res.status(500).json(new ApiError(500, "Account disabled by Administrator"));
+    }
+
     await userExists.save();
 
     const loginTime = new Date().toLocaleString("en-US", {
